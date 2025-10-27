@@ -1,70 +1,123 @@
-# Getting Started with Create React App
+# 🎤 Dynamic Music Generator - Senior Project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A voice-controlled music generation system for D&D gameplay that uses real-time speech recognition to detect keywords and generate appropriate background music.
 
-## Available Scripts
+## 📊 Project Status
 
-In the project directory, you can run:
+**Current Phase:** 1 of 8 - Voice Transcription ✅  
+**Progress:** ~12%  
+**Last Updated:** October 2025
 
-### `npm start`
+## 👥 Team
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Hanna Saffi** - Voice Recognition & Logic
+- **Aleem** - UI/UX & Styling
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🚀 Quick Start
+```bash
+# Clone the repository
+git clone git@github.com:HannaSaffi/Dynamic-Music-Generator---Senior-Project.git
 
-### `npm test`
+# Navigate to project
+cd Dynamic-Music-Generator---Senior-Project
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Install dependencies
+npm install
 
-### `npm run build`
+# Start development server
+npm start
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Open http://localhost:3000 and click "Start Recording"
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## ✨ Phase 1 Features
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- ✅ Real-time voice transcription
+- ✅ Visual recording indicator
+- ✅ Interim and final results display
+- ✅ Browser compatibility checking
+- ✅ Privacy-focused (local processing only)
+- ✅ Responsive design for all devices
 
-### `npm run eject`
+## 🛠️ Tech Stack
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- React 18
+- Web Speech API
+- CSS3 Animations
+- React Hooks (Custom hooks for transcription)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📋 Project Phases
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. ✅ **Voice Transcription** - Real-time speech-to-text
+2. 🔜 **Keyword Detection** - Extract D&D scene keywords
+3. ⏳ **Music API Integration** - Connect to music generation service
+4. ⏳ **Audio Mixing** - Smooth transitions and layering
+5. ⏳ **Backend & WebSockets** - Real-time multiplayer support
+6. ⏳ **UI/UX Enhancement** - Full interface design
+7. ⏳ **Testing & Optimization** - Performance tuning
+8. ⏳ **Deployment** - Production release
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🎯 Goals
 
-## Learn More
+Create an immersive D&D experience where:
+- DM's speech is transcribed in real-time
+- Keywords trigger appropriate music (combat, tavern, dungeon, etc.)
+- Music adapts dynamically to gameplay
+- Multiple players can connect simultaneously
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🌐 Browser Support
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+| Browser | Support |
+|---------|---------|
+| Chrome  | ✅ Full Support |
+| Edge    | ✅ Full Support |
+| Safari  | ✅ Full Support |
+| Firefox | ⚠️ Limited Support |
 
-### Code Splitting
+## 📁 Project Structure
+```
+Dynamic-Music-Generator---Senior-Project/
+├── public/
+│   └── index.html
+├── src/
+│   ├── components/
+│   │   └── VoiceTranscriber.js    # Voice recognition hook
+│   ├── App.js                      # Main component
+│   ├── App.css                     # Styles
+│   └── index.js                    # Entry point
+├── package.json
+└── README.md
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🤝 Contributing
 
-### Analyzing the Bundle Size
+### For Team Members:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. Always work on your own branch
+2. Pull latest changes before starting work
+3. Commit frequently with clear messages
+4. Test before pushing
+```bash
+# Create your branch
+git checkout -b your-name-feature
 
-### Making a Progressive Web App
+# Make changes, then:
+git add .
+git commit -m "Clear description of what you did"
+git push -u origin your-name-feature
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 📝 License
 
-### Advanced Configuration
+Educational project for senior thesis.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 👤 Authors
 
-### Deployment
+- Hanna Saffi
+- Aleem
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 🙏 Acknowledgments
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Adviser: [Your Adviser's Name]
+- Course: [Course Name/Number]
+- Institution: [Your University]

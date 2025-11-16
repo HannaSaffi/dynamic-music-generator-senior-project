@@ -1,5 +1,7 @@
 import './App.css';
 import { useVoiceTranscription } from './components/VoiceTranscriber';
+import { useSentimentWithTranscription } from './useSentimentAnalysis';
+import { SentimentDashboard } from './SentimentComponents';
 
 function App() {
   const {
@@ -11,6 +13,9 @@ function App() {
     stopListening,
     clearTranscript
   } = useVoiceTranscription();
+
+  // Add sentiment analysis - ONE line!
+  const sentiment = useSentimentWithTranscription(transcript + interimTranscript);
 
   if (!isSupported) {
     return (
@@ -30,8 +35,8 @@ function App() {
   return (
     <div className="App">
       <div className="container">
-        <h1>🎤 Voice Transcriber</h1>
-        <p className="subtitle">Press the button to start recording and transcribing your voice</p>
+        <h1>🎤 Voice Transcriber with Sentiment Analysis</h1>
+        <p className="subtitle">Press the button to start recording and see real-time sentiment analysis</p>
 
         <div className="controls">
           {!isListening ? (
@@ -74,6 +79,11 @@ function App() {
             )}
           </div>
         </div>
+
+        {/* Sentiment Analysis Dashboard */}
+        {(transcript || interimTranscript) && (
+          <SentimentDashboard {...sentiment} />
+        )}
       </div>
     </div>
   );

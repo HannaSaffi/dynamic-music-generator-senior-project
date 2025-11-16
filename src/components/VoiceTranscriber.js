@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSentimentWithTranscription } from '../useSentimentAnalysis';
+import { SentimentDashboard } from '../SentimentComponents';
 
 export function useVoiceTranscription() {
   const [isListening, setIsListening] = useState(false);
@@ -92,4 +94,84 @@ export function useVoiceTranscription() {
     stopListening,
     clearTranscript
   };
+}
+
+// NEW: Voice Transcriber Component with Sentiment Analysis
+export function VoiceTranscriberWithSentiment() {
+  const {
+    isListening,
+    transcript,
+    interimTranscript,
+    isSupported,
+    startListening,
+    stopListening,
+    clearTranscript
+  } = useVoiceTranscription();
+
+  // Add sentiment analysis - ONE line!
+  const sentiment = useSentimentWithTranscription(transcript + interimTranscript);
+
+  if (!isSupported) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <p>Speech recognition is not supported in this browser. Please use Chrome or Edge.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+      <h1>Voice Transcription with Sentiment Analysis</h1>
+      
+      <div style={{ marginBottom: '20px' }}>
+        <button
+          onClick={isListening ? stopListening : startListening}
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            backgroundColor: isListening ? '#ef4444' : '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          {isListening ? '🛑 Stop' : '🎤 Start Recording'}
+        </button>
+        
+        <button
+          onClick={clearTranscript}
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            backgroundColor: '#6b7280',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          Clear
+        </button>
+      </div>
+
+      <div style={{
+        padding: '16px',
+        backgroundColor: '#f3f4f6',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        minHeight: '150px'
+      }}>
+        <h3>Transcript:</h3>
+        <p style={{ margin: '10px 0' }}>
+          {transcript}
+          <span style={{ color: '#6b7280' }}>{interimTranscript}</span>
+        </p>
+      </div>
+
+      {/* Sentiment Analysis Dashboard */}
+      <SentimentDashboard {...sentiment} />
+    </div>
+  );
 }

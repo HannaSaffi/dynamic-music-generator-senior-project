@@ -98,8 +98,10 @@ class EmotionAnalysisService {
       return;
     }
 
-    // Analyze the FULL text
-    await this.analyzeEmotion(text);
+    // Analyze only the LAST 30 words (so new emotions can override old ones)
+    const words = text.split(/\s+/);
+    const recentText = words.slice(-30).join(' ');
+    await this.analyzeEmotion(recentText);
     this.lastAnalyzedText = text;
   }
 

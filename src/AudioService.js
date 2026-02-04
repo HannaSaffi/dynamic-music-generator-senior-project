@@ -7,18 +7,19 @@ class AudioService {
   constructor() {
     this.currentAudio = null;
     this.currentEmotion = null;
+    this.currentTrackName = null;
     this.volume = 0.7;
     this.isPlaying = false;
     this.listeners = new Set();
     
-    // 5 tracks per emotion
-    this.trackCounts = {
-      joy: 5,
-      sadness: 5,
-      anger: 5,
-      fear: 5,
-      surprise: 5,
-      disgust: 5
+    // Actual track filenames per emotion
+    this.emotionTracks = {
+      joy: ['happy.mp3'],
+      sadness: [], // Aleem will add
+      anger: [], // Aleem will add
+      fear: ['horror.mp3', 'horrorDoll.mp3', 'suspense.mp3', 'tension.mp3', 'darkAmbient.mp3'],
+      surprise: ['fantasy.mp3', 'magical.mp3', 'mystery.mp3', 'surprise.mp3', 'unexpected.mp3'],
+      disgust: ['creepy.mp3', 'darkDrone.mp3', 'eerie.mp3', 'unsettling.mp3', 'weird.mp3']
     };
     
     // Avoid immediate repeats
@@ -26,26 +27,37 @@ class AudioService {
   }
 
   /**
-   * Get random track number (avoids repeat)
+   * Get random track for emotion (avoids repeat)
    */
   getRandomTrack(emotion) {
-    const count = this.trackCounts[emotion] || 5;
-    let trackNum;
+    const tracks = this.emotionTracks[emotion] || [];
     
+    if (tracks.length === 0) {
+      console.warn(`No tracks for ${emotion}, falling back to joy`);
+      return { track: this.emotionTracks['joy'][0], fallbackEmotion: 'joy' };
+    }
+    
+    if (tracks.length === 1) {
+      return { track: tracks[0], fallbackEmotion: null };
+    }
+    
+    let track;
     do {
-      trackNum = Math.floor(Math.random() * count) + 1;
-    } while (trackNum === this.lastPlayedTrack[emotion] && count > 1);
+      track = tracks[Math.floor(Math.random() * tracks.length)];
+    } while (track === this.lastPlayedTrack[emotion] && tracks.length > 1);
     
-    this.lastPlayedTrack[emotion] = trackNum;
-    return trackNum;
+    this.lastPlayedTrack[emotion] = track;
+    return { track, fallbackEmotion: null };
   }
 
   /**
    * Get audio file path
    */
   getAudioPath(emotion) {
-    const trackNum = this.getRandomTrack(emotion);
-    return `/audio/${emotion}/track${trackNum}.mp3`;
+    const { track, fallbackEmotion } = this.getRandomTrack(emotion);
+    const actualEmotion = fallbackEmotion || emotion;
+    this.currentTrackName = track;
+    return `/audio/${actualEmotion}/${track}`;
   }
 
   /**
@@ -56,6 +68,12 @@ class AudioService {
     
     if (!validEmotions.includes(emotion)) {
       console.warn(`Unknown emotion: ${emotion}, defaulting to joy`);
+      emotion = 'joy';
+    }
+
+    // Check if we have tracks for this emotion
+    if (this.emotionTracks[emotion].length === 0) {
+      console.warn(`No tracks for ${emotion}, falling back to joy`);
       emotion = 'joy';
     }
 
@@ -73,6 +91,8 @@ class AudioService {
    */
   async crossfadeTo(emotion) {
     const path = this.getAudioPath(emotion);
+    console.log(`🎵 Playing: ${path}`);
+    
     const newAudio = new Audio(path);
     newAudio.volume = 0;
     newAudio.loop = true;
@@ -233,6 +253,7 @@ class AudioService {
     return {
       isPlaying: this.isPlaying,
       currentEmotion: this.currentEmotion,
+      currentTrack: this.currentTrackName,
       volume: this.volume * 100
     };
   }
@@ -261,6 +282,7 @@ class AudioService {
     }
     this.isPlaying = false;
     this.currentEmotion = null;
+    this.currentTrackName = null;
     this.notifyListeners();
   }
 }

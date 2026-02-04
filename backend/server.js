@@ -1,12 +1,15 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const setupWebSocket = require('./websocket');
 
 const app = express();
+const server = http.createServer(app);
 
 connectDB();
 
@@ -28,6 +31,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/songs', require('./routes/songs'));
 app.use('/api/sessions', require('./routes/sessions'));
+app.use('/api/generate', require('./routes/generate'));
 
 app.get('/', (req, res) => {
   res.json({
@@ -39,7 +43,11 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+// Setup WebSocket for real-time music generation
+setupWebSocket(server);
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔌 WebSocket ready on ws://localhost:${PORT}`);
 });

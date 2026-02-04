@@ -1,16 +1,16 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { VoiceTranscriberDisplay } from './components/VoiceTranscriber';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { useSentimentWithTranscription } from './useSentimentAnalysis';
-import { audioService } from './AudioService';
 
 function Dashboard() {
   const { user, logout } = useAuth();
   const [isListening, setIsListening] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
-  const [currentMood, setCurrentMood] = useState('joy');
+  const [currentMood, setCurrentMood] = useState('calm');
 
   // Transcription state
   const [transcript, setTranscript] = useState('');
@@ -19,28 +19,6 @@ function Dashboard() {
 
   // Sentiment analysis
   const sentiment = useSentimentWithTranscription(transcript + interimTranscript);
-
-  // Connect sentiment to audio playback
-  useEffect(() => {
-    if (sentiment.musicData?.emotion && sentiment.isInitialized && isListening) {
-      const emotion = sentiment.musicData.emotion;
-      audioService.playForEmotion(emotion);
-      setCurrentMood(emotion);
-      setIsPlaying(true);
-    }
-  }, [sentiment.musicData?.emotion, sentiment.isInitialized, isListening]);
-
-  // Sync volume with audioService
-  useEffect(() => {
-    audioService.setVolume(volume);
-  }, [volume]);
-
-  // Cleanup audio on unmount
-  useEffect(() => {
-    return () => {
-      audioService.stop();
-    };
-  }, []);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -121,56 +99,25 @@ function Dashboard() {
     setInterimTranscript('');
   };
 
-  // Handle play/pause toggle
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      audioService.pause();
-      setIsPlaying(false);
-    } else {
-      // If no track playing, start with current mood
-      if (!audioService.currentEmotion) {
-        audioService.playForEmotion(currentMood);
-      } else {
-        audioService.play();
-      }
-      setIsPlaying(true);
-    }
-  };
-
-  // Handle volume change
-  const handleVolumeChange = (e) => {
-    const value = Number(e.target.value);
-    setVolume(value);
-    audioService.setVolume(value);
-  };
-
-  // Handle manual mood selection
-  const handleMoodSelect = (moodId) => {
-    setCurrentMood(moodId);
-    if (isPlaying) {
-      audioService.playForEmotion(moodId);
-    }
-  };
-
   const moods = [
     { id: 'joy', label: 'Happy', emoji: '😊', color: '#10b981' },
-    { id: 'sadness', label: 'Sad', emoji: '😢', color: '#3b82f6' },
-    { id: 'anger', label: 'Energetic', emoji: '⚡', color: '#ef4444' },
-    { id: 'fear', label: 'Tense', emoji: '😰', color: '#8b5cf6' },
-    { id: 'surprise', label: 'Mysterious', emoji: '✨', color: '#f59e0b' },
-    { id: 'disgust', label: 'Eerie', emoji: '🌫️', color: '#6b7280' },
+    { id: 'calm', label: 'Calm', emoji: '🌙', color: '#3b82f6' },
+    { id: 'anger', label: 'Energetic', emoji: '⚡', color: '#f59e0b' },
+    { id: 'sadness', label: 'Romantic', emoji: '💖', color: '#ec4899' },
+    { id: 'fear', label: 'Focused', emoji: '🧠', color: '#8b5cf6' },
+    { id: 'surprise', label: 'Ambient', emoji: '✨', color: '#6366f1' },
   ];
 
   const musicTracks = {
-    joy: { title: 'Happy Vibes', artist: 'Pre-saved Track', genre: 'Upbeat' },
-    sadness: { title: 'Melancholy', artist: 'Pre-saved Track', genre: 'Slow' },
-    anger: { title: 'Intense Energy', artist: 'Pre-saved Track', genre: 'Electronic' },
-    fear: { title: 'Suspense', artist: 'Pre-saved Track', genre: 'Dark Ambient' },
-    surprise: { title: 'Wonder', artist: 'Pre-saved Track', genre: 'Cinematic' },
-    disgust: { title: 'Unsettling', artist: 'Pre-saved Track', genre: 'Eerie' },
+    joy: { title: 'Sunshine Boulevard', artist: 'AI Composer', genre: 'Pop' },
+    calm: { title: 'Peaceful Waters', artist: 'AI Composer', genre: 'Ambient' },
+    anger: { title: 'Electric Pulse', artist: 'AI Composer', genre: 'Electronic' },
+    sadness: { title: 'Moonlight Serenade', artist: 'AI Composer', genre: 'Jazz' },
+    fear: { title: 'Deep Concentration', artist: 'AI Composer', genre: 'Lo-Fi' },
+    surprise: { title: 'Cosmic Dreams', artist: 'AI Composer', genre: 'Ambient' },
   };
 
-  const currentTrack = musicTracks[currentMood] || musicTracks.joy;
+  const currentTrack = musicTracks[currentMood] || musicTracks.calm;
 
   return (
     <div style={{
@@ -279,11 +226,10 @@ function Dashboard() {
                   onClick={() => {
                     if (isListening) {
                       stopListening();
-                      audioService.pause();
                       setIsPlaying(false);
                     } else {
                       startListening();
-                      // Audio will start when first emotion is detected
+                      setIsPlaying(true);
                     }
                   }}
                   style={{
@@ -348,7 +294,7 @@ function Dashboard() {
                     {currentTrack.title}
                   </h3>
                   <p style={{ color: '#c4b5fd', margin: '0 0 8px 0', fontSize: '14px' }}>
-                    {currentTrack.artist} • Emotion: {currentMood}
+                    {currentTrack.artist}
                   </p>
                   <span style={{
                     display: 'inline-block',
@@ -364,10 +310,10 @@ function Dashboard() {
 
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ color: '#c4b5fd', margin: '0 0 4px 0', fontSize: '14px' }}>
-                    {isPlaying ? 'Now Playing' : 'Paused'}
+                    Now Playing
                   </p>
                   <p style={{ color: 'white', margin: 0, fontSize: '14px' }}>
-                    {sentiment.musicData?.emotion ? `Detected: ${sentiment.musicData.emotion}` : 'Waiting for speech...'}
+                    Generated in real-time
                   </p>
                 </div>
               </div>
@@ -401,7 +347,7 @@ function Dashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <button
-                    onClick={handlePlayPause}
+                    onClick={() => setIsPlaying(!isPlaying)}
                     style={{
                       width: '56px',
                       height: '56px',
@@ -438,7 +384,7 @@ function Dashboard() {
                     min="0"
                     max="100"
                     value={volume}
-                    onChange={handleVolumeChange}
+                    onChange={(e) => setVolume(Number(e.target.value))}
                     style={{
                       width: '128px',
                       accentColor: '#a855f7'
@@ -475,7 +421,7 @@ function Dashboard() {
                 fontSize: '20px',
                 fontWeight: '600'
               }}>
-                Music Mood (Manual Override)
+                Music Mood
               </h3>
 
               <div style={{
@@ -486,7 +432,7 @@ function Dashboard() {
                 {moods.map((mood) => (
                   <button
                     key={mood.id}
-                    onClick={() => handleMoodSelect(mood.id)}
+                    onClick={() => setCurrentMood(mood.id)}
                     style={{
                       position: 'relative',
                       padding: '20px',
@@ -536,73 +482,6 @@ function Dashboard() {
                     </p>
                   </button>
                 ))}
-              </div>
-            </div>
-
-            {/* Detected Emotion Display */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '24px',
-              padding: '24px',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '20px'
-              }}>
-                <span style={{ fontSize: '20px' }}>🎭</span>
-                <h3 style={{
-                  color: 'white',
-                  margin: 0,
-                  fontSize: '18px',
-                  fontWeight: '600'
-                }}>
-                  Emotion Detection
-                </h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Current Emotion</span>
-                  <span style={{ 
-                    color: 'white', 
-                    fontSize: '14px',
-                    padding: '4px 12px',
-                    background: 'rgba(168, 85, 247, 0.3)',
-                    borderRadius: '8px'
-                  }}>
-                    {sentiment.musicData?.emotion || 'None'}
-                  </span>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Confidence</span>
-                  <span style={{ color: 'white', fontSize: '14px' }}>
-                    {sentiment.musicData?.intensity 
-                      ? `${(sentiment.musicData.intensity * 100).toFixed(0)}%` 
-                      : '-'}
-                  </span>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Trend</span>
-                  <span style={{ color: 'white', fontSize: '14px' }}>
-                    {sentiment.musicData?.trend || 'stable'}
-                  </span>
-                </div>
               </div>
             </div>
 

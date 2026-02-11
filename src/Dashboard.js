@@ -22,13 +22,15 @@ function Dashboard() {
 
   // Connect sentiment to audio playback
   useEffect(() => {
-   const emotion = sentiment.musicData?.emotion;
-   if (emotion && sentiment.isInitialized) {
-     audioService.playForEmotion(emotion);
-     setCurrentMood(emotion);
-     setIsPlaying(true);
-   }
-  }, [sentiment.musicData?.emotion, sentiment.isInitialized]);
+    const emotion = sentiment.musicData?.emotion;
+    const timestamp = sentiment.sentimentState?.current?.timestamp;
+    if (emotion && sentiment.isInitialized && isListening) {
+      audioService.playForEmotion(emotion);
+      setCurrentMood(emotion);
+      setIsPlaying(true);
+    }
+  }, [sentiment.musicData?.emotion, sentiment.sentimentState?.current?.timestamp, sentiment.isInitialized, isListening]);
+
   // Sync volume with audioService
   useEffect(() => {
     audioService.setVolume(volume);

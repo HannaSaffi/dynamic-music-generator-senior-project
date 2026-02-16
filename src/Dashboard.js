@@ -16,20 +16,22 @@ function Dashboard() {
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const recognitionRef = useRef(null);
+  const shouldListenRef = useRef(false);
 
   // Sentiment analysis
   const sentiment = useSentimentWithTranscription(transcript + interimTranscript);
 
   // Connect sentiment to audio playback
   useEffect(() => {
-    const emotion = sentiment.musicData?.emotion;
-    const timestamp = sentiment.sentimentState?.current?.timestamp;
+    const emotion = sentiment.sentimentState?.current?.emotion;
+    console.log('🎯 Emotion detected:', emotion, 'isListening:', isListening);
     if (emotion && sentiment.isInitialized && isListening) {
+      console.log('🎵 Triggering audio for:', emotion);
       audioService.playForEmotion(emotion);
       setCurrentMood(emotion);
       setIsPlaying(true);
     }
-  }, [sentiment.musicData?.emotion, sentiment.sentimentState?.current?.timestamp, sentiment.isInitialized, isListening]);
+  }, [sentiment.sentimentState, sentiment.isInitialized, isListening]);
 
   // Sync volume with audioService
   useEffect(() => {
@@ -89,10 +91,14 @@ function Dashboard() {
       setIsListening(false);
     };
 
-    recognition.onend = () => {
-      console.log('Voice recognition ended');
-      setIsListening(false);
-    };
+    const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      shouldListenRef.current = true;
+      setTranscript('');
+      setInterimTranscript('');
+      recognitionRef.current.start();
+    }
+  };
 
     recognitionRef.current = recognition;
 
@@ -113,6 +119,7 @@ function Dashboard() {
 
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
+      shouldListenRef.current = false;
       recognitionRef.current.stop();
     }
   };

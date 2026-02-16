@@ -10,7 +10,7 @@ function Dashboard() {
   const [isListening, setIsListening] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
-  const [currentMood, setCurrentMood] = useState('joy');
+  const [currentMood, setCurrentMood] = useState(null);
 
   // Transcription state
   const [transcript, setTranscript] = useState('');
@@ -21,17 +21,43 @@ function Dashboard() {
   // Sentiment analysis
   const sentiment = useSentimentWithTranscription(transcript + interimTranscript);
 
-  // Connect sentiment to audio playback
+  // Connect sentiment to audio playback using recent emotion history (not cumulative stats)
   useEffect(() => {
-    const emotion = sentiment.sentimentState?.current?.emotion;
-    console.log('🎯 Emotion detected:', emotion, 'isListening:', isListening);
-    if (emotion && sentiment.isInitialized && isListening) {
-      console.log('🎵 Triggering audio for:', emotion);
-      audioService.playForEmotion(emotion);
-      setCurrentMood(emotion);
+    const history = sentiment.sentimentState?.history;
+    if (!history || history.length === 0 || !sentiment.isInitialized || !isListening) return;
+
+    // Use last 5 results to determine dominant emotion (responsive to changes)
+    const recentHistory = history.slice(-5);
+    const recentCounts = {};
+    for (const entry of recentHistory) {
+      recentCounts[entry.emotion] = (recentCounts[entry.emotion] || 0) + 1;
+    }
+
+    let dominantEmotion = 'joy';
+    let maxCount = 0;
+    for (const [emotion, count] of Object.entries(recentCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        dominantEmotion = emotion;
+      }
+    }
+
+    console.log('🎯 Dominant emotion (recent):', dominantEmotion, '(count:', maxCount, '/ last', recentHistory.length, ')');
+    if (dominantEmotion !== currentMood) {
+      console.log('🎵 Switching audio to dominant emotion:', dominantEmotion);
+      audioService.playForEmotion(dominantEmotion);
+      setCurrentMood(dominantEmotion);
+    }
+    if (!isPlaying) {
       setIsPlaying(true);
     }
-  }, [sentiment.sentimentState, sentiment.isInitialized, isListening]);
+  }, [
+    sentiment.sentimentState?.history,
+    sentiment.sentimentState?.statistics?.totalAnalyzed,
+    sentiment.isInitialized,
+    isListening,
+    currentMood,
+  ]);
 
   // Sync volume with audioService
   useEffect(() => {
@@ -91,14 +117,20 @@ function Dashboard() {
       setIsListening(false);
     };
 
-    const startListening = () => {
-    if (recognitionRef.current && !isListening) {
-      shouldListenRef.current = true;
-      setTranscript('');
-      setInterimTranscript('');
-      recognitionRef.current.start();
-    }
-  };
+    recognition.onend = () => {
+      console.log('🎤 Voice recognition ended');
+      if (shouldListenRef.current) {
+        console.log('🔄 Auto-restarting voice recognition...');
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error('Failed to restart recognition:', e);
+          setIsListening(false);
+        }
+      } else {
+        setIsListening(false);
+      }
+    };
 
     recognitionRef.current = recognition;
 
@@ -111,6 +143,7 @@ function Dashboard() {
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
+      shouldListenRef.current = true;
       setTranscript('');
       setInterimTranscript('');
       recognitionRef.current.start();
@@ -375,7 +408,7 @@ function Dashboard() {
                     {isPlaying ? 'Now Playing' : 'Paused'}
                   </p>
                   <p style={{ color: 'white', margin: 0, fontSize: '14px' }}>
-                    {sentiment.musicData?.emotion ? `Detected: ${sentiment.musicData.emotion}` : 'Waiting for speech...'}
+                    {currentMood ? `Detected: ${currentMood}` : 'Waiting for speech...'}
                   </p>
                 </div>
               </div>
@@ -579,14 +612,14 @@ function Dashboard() {
                   alignItems: 'center'
                 }}>
                   <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Current Emotion</span>
-                  <span style={{ 
-                    color: 'white', 
+                  <span style={{
+                    color: 'white',
                     fontSize: '14px',
                     padding: '4px 12px',
                     background: 'rgba(168, 85, 247, 0.3)',
                     borderRadius: '8px'
                   }}>
-                    {sentiment.musicData?.emotion || 'None'}
+                    {currentMood || 'None'}
                   </span>
                 </div>
                 <div style={{
@@ -596,9 +629,12 @@ function Dashboard() {
                 }}>
                   <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Confidence</span>
                   <span style={{ color: 'white', fontSize: '14px' }}>
-                    {sentiment.musicData?.intensity 
-                      ? `${(sentiment.musicData.intensity * 100).toFixed(0)}%` 
-                      : '-'}
+                    {(() => {
+                      const stats = sentiment.sentimentState?.statistics;
+                      if (!stats || stats.totalAnalyzed === 0 || !currentMood) return '-';
+                      const count = stats[`${currentMood}Count`] || 0;
+                      return `${((count / stats.totalAnalyzed) * 100).toFixed(0)}%`;
+                    })()}
                   </span>
                 </div>
                 <div style={{

@@ -13,11 +13,32 @@ export function SentimentDashboard({
   isAnalyzing,
   error,
 }) {
-  // Get emotion from state
-  const currentEmotion = sentimentState?.current?.emotion || currentSentiment;
-  const emotionScore = sentimentState?.current?.score || sentimentScore;
-  const displayTrend = trend || 'stable';
+  // Get accumulated statistics
   const stats = sentimentState?.statistics;
+  const displayTrend = trend || 'stable';
+
+  // Derive dominant emotion from accumulated counts (same logic as Dashboard.js audio)
+  // This ensures the UI header matches the breakdown and the audio being played
+  let currentEmotion = null;
+  let emotionScore = null;
+  const emotions = ['joy', 'sadness', 'anger', 'fear', 'surprise', 'disgust'];
+
+  if (stats && stats.totalAnalyzed > 0) {
+    let maxCount = 0;
+    for (const e of emotions) {
+      const count = stats[`${e}Count`] || 0;
+      if (count > maxCount) {
+        maxCount = count;
+        currentEmotion = e;
+      }
+    }
+    // Show the dominant emotion's percentage as the confidence
+    emotionScore = maxCount / stats.totalAnalyzed;
+  } else {
+    // Fall back to the latest single result when no stats yet
+    currentEmotion = sentimentState?.current?.emotion || currentSentiment;
+    emotionScore = sentimentState?.current?.score || sentimentScore;
+  }
 
   // Emotion configuration matching the wheel
   const emotionConfig = {

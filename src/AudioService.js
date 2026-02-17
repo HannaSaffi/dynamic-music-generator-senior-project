@@ -14,6 +14,7 @@ class AudioService {
     
     // Actual track filenames per emotion
     this.emotionTracks = {
+      intro: ['intro.mp3'],
       joy: ['happy.mp3', 'acoustic-upbeat.mp3', 'happy-acoustic-guitar.mp3', 'pop-upbeat-pop-music.mp3', 'upbeat-acoustic-happy-strums.mp3', 'upbeat-acoustic.mp3'],
       sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.mp3', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'], // Aleem will add
       anger: ['angry.mp3', 'heavy-punky.mp3', 'intense-chase.mp3', 'intense-hard-rock.mp3', 'sport-action-rock.mp3'], // Aleem will add

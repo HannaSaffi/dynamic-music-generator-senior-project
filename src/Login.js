@@ -56,7 +56,7 @@ function Login() {
             margin: '0 0 12px 0',
             letterSpacing: '-0.5px'
           }}>
-            SoundScape AI
+            Sound Scape
           </h1>
           <p style={{
             color: '#c4b5fd',
@@ -252,7 +252,7 @@ function Login() {
               textAlign: 'center',
               lineHeight: '1.4'
             }}>
-              AI Generation
+              Music Generation
             </span>
           </div>
           <div style={{

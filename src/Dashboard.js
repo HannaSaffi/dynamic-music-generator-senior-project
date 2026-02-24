@@ -5,12 +5,66 @@ import { AudioVisualizer } from './components/AudioVisualizer';
 import { useSentimentWithTranscription } from './useSentimentAnalysis';
 import { audioService } from './AudioService';
 
+const themeMap = {
+  casual: {
+    background: 'linear-gradient(to bottom right, #5b21b6, #4c1d95, #1e3a8a)',
+    accent: '#a855f7',
+    accentSecondary: '#ec4899',
+    subtextColor: '#c4b5fd',
+    accentRgb: '168, 85, 247',
+    waveColors: ['#a855f7', '#ec4899'],
+  },
+  meditation: {
+    background: 'linear-gradient(to bottom right, #4a7c59, #3a6b49, #2d5a3a)',
+    accent: '#9DC183',
+    accentSecondary: '#5f9ea0',
+    subtextColor: '#b8d8ba',
+    accentRgb: '157, 193, 131',
+    waveColors: ['#48C9B0', '#5DADE2'],
+  },
+  therapy: {
+    background: 'linear-gradient(to bottom right, #7b68a8, #6a5a96, #5a4d82)',
+    accent: '#B4A7D6',
+    accentSecondary: '#9DC183',
+    subtextColor: '#d0c4e8',
+    accentRgb: '180, 167, 214',
+    waveColors: ['#A569BD', '#D2B4DE'],
+  },
+  boardgames: {
+    background: 'linear-gradient(to bottom right, #b8860b, #a0750a, #8b6508)',
+    accent: '#FFB347',
+    accentSecondary: '#FF8C00',
+    subtextColor: '#ffe0a6',
+    accentRgb: '255, 179, 71',
+    waveColors: ['#F5B041', '#F39C12'],
+  },
+  dnd: {
+    background: 'linear-gradient(to bottom right, #8B0000, #6b0000, #4a0000)',
+    accent: '#FFD700',
+    accentSecondary: '#B22222',
+    subtextColor: '#ffecb3',
+    accentRgb: '255, 215, 0',
+    waveColors: ['#F4D03F', '#F39C12'],
+  },
+};
+
+const contextModes = [
+  { id: 'casual', label: 'Casual Conversation', emoji: '💬' },
+  { id: 'meditation', label: 'Meditation', emoji: '🧘' },
+  { id: 'therapy', label: 'Therapy', emoji: '🩺' },
+  { id: 'boardgames', label: 'Board Games', emoji: '🎲' },
+  { id: 'dnd', label: 'D&D Adventure', emoji: '🐉' },
+];
+
 function Dashboard() {
   const { user, logout } = useAuth();
   const [isListening, setIsListening] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
   const [currentMood, setCurrentMood] = useState(null);
+  const [selectedMode, setSelectedMode] = useState('casual');
+
+  const theme = themeMap[selectedMode];
 
   // Transcription state
   const [transcript, setTranscript] = useState('');
@@ -26,8 +80,8 @@ function Dashboard() {
     const history = sentiment.sentimentState?.history;
     if (!history || history.length === 0 || !sentiment.isInitialized || !isListening) return;
 
-    // Use last 5 results to determine dominant emotion (responsive to changes)
-    const recentHistory = history.slice(-5);
+    // Use last 3 results to determine dominant emotion (responsive to changes)
+    const recentHistory = history.slice(-3);
     const recentCounts = {};
     for (const entry of recentHistory) {
       recentCounts[entry.emotion] = (recentCounts[entry.emotion] || 0) + 1;
@@ -74,7 +128,7 @@ function Dashboard() {
   // Initialize speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       console.error('Speech recognition not supported');
       return;
@@ -185,23 +239,6 @@ function Dashboard() {
     audioService.setVolume(value);
   };
 
-  // Handle manual mood selection
-  const handleMoodSelect = (moodId) => {
-    setCurrentMood(moodId);
-    if (isPlaying) {
-      audioService.playForEmotion(moodId);
-    }
-  };
-
-  const moods = [
-    { id: 'joy', label: 'Happy', emoji: '😊', color: '#10b981' },
-    { id: 'sadness', label: 'Sad', emoji: '😢', color: '#3b82f6' },
-    { id: 'anger', label: 'Energetic', emoji: '⚡', color: '#ef4444' },
-    { id: 'fear', label: 'Tense', emoji: '😰', color: '#8b5cf6' },
-    { id: 'surprise', label: 'Mysterious', emoji: '✨', color: '#f59e0b' },
-    { id: 'disgust', label: 'Eerie', emoji: '🌫️', color: '#6b7280' },
-  ];
-
   const musicTracks = {
     joy: { title: 'Happy Vibes', artist: 'Pre-saved Track', genre: 'Upbeat' },
     sadness: { title: 'Melancholy', artist: 'Pre-saved Track', genre: 'Slow' },
@@ -216,8 +253,9 @@ function Dashboard() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(to bottom right, #5b21b6, #4c1d95, #1e3a8a)',
-      padding: '32px 16px'
+      background: theme.background,
+      padding: '32px 16px',
+      transition: 'background 0.6s ease'
     }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
@@ -231,14 +269,15 @@ function Dashboard() {
             <div style={{
               width: '56px',
               height: '56px',
-              background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+              background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentSecondary})`,
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '20px',
               fontWeight: 'bold',
-              color: 'white'
+              color: 'white',
+              transition: 'background 0.6s ease'
             }}>
               {user?.username?.substring(0, 2).toUpperCase() || 'SA'}
             </div>
@@ -246,7 +285,7 @@ function Dashboard() {
               <h2 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: '600' }}>
                 Welcome back
               </h2>
-              <p style={{ color: '#c4b5fd', margin: 0, fontSize: '16px' }}>
+              <p style={{ color: theme.subtextColor, margin: 0, fontSize: '16px', transition: 'color 0.6s ease' }}>
                 Ready to create your soundtrack
               </p>
             </div>
@@ -270,7 +309,7 @@ function Dashboard() {
               transition: 'all 0.3s'
             }}
           >
-            🚪 Logout
+            Logout
           </button>
         </div>
 
@@ -310,7 +349,7 @@ function Dashboard() {
                     <h3 style={{ color: 'white', margin: '0 0 4px 0', fontSize: '18px' }}>
                       {isListening ? 'Listening to your environment' : 'Listening paused'}
                     </h3>
-                    <p style={{ color: '#c4b5fd', margin: 0, fontSize: '14px' }}>
+                    <p style={{ color: theme.subtextColor, margin: 0, fontSize: '14px', transition: 'color 0.6s ease' }}>
                       {isListening ? 'Analyzing conversation and generating music...' : 'Click to resume'}
                     </p>
                   </div>
@@ -324,7 +363,8 @@ function Dashboard() {
                       setIsPlaying(false);
                     } else {
                       startListening();
-                      // Audio will start when first emotion is detected
+                      audioService.playIntro();
+                      setIsPlaying(true);
                     }
                   }}
                   style={{
@@ -344,30 +384,32 @@ function Dashboard() {
               </div>
 
               {/* Audio Visualizer */}
-              <AudioVisualizer isActive={isListening && isPlaying} />
+              <AudioVisualizer isActive={isListening && isPlaying} waveColors={theme.waveColors} />
             </div>
 
             {/* Now Playing */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2))',
+              background: `linear-gradient(135deg, rgba(${theme.accentRgb}, 0.2), rgba(${theme.accentRgb}, 0.1))`,
               backdropFilter: 'blur(20px)',
               borderRadius: '24px',
               padding: '32px',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              transition: 'background 0.6s ease'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 <div style={{ position: 'relative' }}>
                   <div style={{
                     width: '80px',
                     height: '80px',
-                    background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                    background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentSecondary})`,
                     borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '40px'
+                    fontSize: '40px',
+                    transition: 'background 0.6s ease'
                   }}>
-                    🎵
+                    {"🎵"}
                   </div>
                   {isPlaying && (
                     <div style={{
@@ -388,23 +430,24 @@ function Dashboard() {
                   <h3 style={{ color: 'white', margin: '0 0 4px 0', fontSize: '18px' }}>
                     {currentTrack.title}
                   </h3>
-                  <p style={{ color: '#c4b5fd', margin: '0 0 8px 0', fontSize: '14px' }}>
-                    {currentTrack.artist} • Emotion: {currentMood}
+                  <p style={{ color: theme.subtextColor, margin: '0 0 8px 0', fontSize: '14px', transition: 'color 0.6s ease' }}>
+                    {currentTrack.artist} {currentMood ? `\u2022 Emotion: ${currentMood}` : ''}
                   </p>
                   <span style={{
                     display: 'inline-block',
                     padding: '4px 12px',
                     background: 'rgba(255, 255, 255, 0.1)',
                     borderRadius: '8px',
-                    color: '#c4b5fd',
-                    fontSize: '12px'
+                    color: theme.subtextColor,
+                    fontSize: '12px',
+                    transition: 'color 0.6s ease'
                   }}>
                     {currentTrack.genre}
                   </span>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ color: '#c4b5fd', margin: '0 0 4px 0', fontSize: '14px' }}>
+                  <p style={{ color: theme.subtextColor, margin: '0 0 4px 0', fontSize: '14px', transition: 'color 0.6s ease' }}>
                     {isPlaying ? 'Now Playing' : 'Paused'}
                   </p>
                   <p style={{ color: 'white', margin: 0, fontSize: '14px' }}>
@@ -424,8 +467,8 @@ function Dashboard() {
                   <div style={{
                     height: '100%',
                     width: isPlaying ? '60%' : '0%',
-                    background: 'linear-gradient(to right, #a855f7, #ec4899)',
-                    transition: 'width 0.3s'
+                    background: `linear-gradient(to right, ${theme.accent}, ${theme.accentSecondary})`,
+                    transition: 'width 0.3s, background 0.6s ease'
                   }} />
                 </div>
               </div>
@@ -448,14 +491,14 @@ function Dashboard() {
                       height: '56px',
                       borderRadius: '50%',
                       border: 'none',
-                      background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                      background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentSecondary})`,
                       cursor: 'pointer',
                       fontSize: '24px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(168, 85, 247, 0.4)',
-                      transition: 'transform 0.2s'
+                      boxShadow: `0 4px 12px rgba(${theme.accentRgb}, 0.4)`,
+                      transition: 'transform 0.2s, background 0.6s ease'
                     }}
                     onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
                     onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
@@ -466,14 +509,14 @@ function Dashboard() {
                     <p style={{ color: 'white', margin: '0 0 4px 0', fontSize: '16px' }}>
                       Playback Control
                     </p>
-                    <p style={{ color: '#c4b5fd', margin: 0, fontSize: '14px' }}>
+                    <p style={{ color: theme.subtextColor, margin: 0, fontSize: '14px', transition: 'color 0.6s ease' }}>
                       {isPlaying ? 'Music is playing' : 'Music paused'}
                     </p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '20px' }}>🔊</span>
+                  <span style={{ fontSize: '20px' }}>{"🔊"}</span>
                   <input
                     type="range"
                     min="0"
@@ -482,7 +525,7 @@ function Dashboard() {
                     onChange={handleVolumeChange}
                     style={{
                       width: '128px',
-                      accentColor: '#a855f7'
+                      accentColor: theme.accent
                     }}
                   />
                   <span style={{ color: 'white', width: '48px', fontSize: '14px' }}>
@@ -493,7 +536,7 @@ function Dashboard() {
             </div>
 
             {/* Transcription & Sentiment Display */}
-            <VoiceTranscriberDisplay 
+            <VoiceTranscriberDisplay
               transcript={transcript}
               interimTranscript={interimTranscript}
               sentiment={sentiment}
@@ -501,8 +544,9 @@ function Dashboard() {
             />
           </div>
 
-          {/* Right Column - Mood Selector */}
+          {/* Right Column - Context Mode & Emotion Detection */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Context Mode Selector */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(20px)',
@@ -516,65 +560,54 @@ function Dashboard() {
                 fontSize: '20px',
                 fontWeight: '600'
               }}>
-                Music Mood (Manual Override)
+                Context Mode
               </h3>
 
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '16px'
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
               }}>
-                {moods.map((mood) => (
+                {contextModes.map((mode) => (
                   <button
-                    key={mood.id}
-                    onClick={() => handleMoodSelect(mood.id)}
+                    key={mode.id}
+                    onClick={() => setSelectedMode(mode.id)}
                     style={{
-                      position: 'relative',
-                      padding: '20px',
-                      background: currentMood === mood.id 
-                        ? 'rgba(255, 255, 255, 0.2)' 
-                        : 'rgba(255, 255, 255, 0.05)',
-                      border: currentMood === mood.id 
-                        ? '2px solid rgba(168, 85, 247, 0.8)' 
-                        : '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '16px',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s',
-                      textAlign: 'center'
-                    }}
-                  >
-                    {currentMood === mood.id && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '8px',
-                        right: '8px',
-                        width: '8px',
-                        height: '8px',
-                        background: '#a855f7',
-                        borderRadius: '50%'
-                      }} />
-                    )}
-                    <div style={{
-                      width: '48px',
-                      height: '48px',
-                      background: mood.color,
-                      borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 12px',
-                      fontSize: '24px'
-                    }}>
-                      {mood.emoji}
-                    </div>
-                    <p style={{
+                      gap: '14px',
+                      padding: '16px 18px',
+                      background: selectedMode === mode.id
+                        ? `rgba(${theme.accentRgb}, 0.3)`
+                        : 'rgba(255, 255, 255, 0.05)',
+                      border: selectedMode === mode.id
+                        ? `2px solid ${theme.accent}`
+                        : '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span style={{ fontSize: '24px' }}>{mode.emoji}</span>
+                    <span style={{
                       color: 'white',
-                      margin: 0,
                       fontSize: '15px',
-                      fontWeight: '500'
+                      fontWeight: selectedMode === mode.id ? '600' : '400'
                     }}>
-                      {mood.label}
-                    </p>
+                      {mode.label}
+                    </span>
+                    {selectedMode === mode.id && (
+                      <div style={{
+                        marginLeft: 'auto',
+                        width: '10px',
+                        height: '10px',
+                        background: theme.accent,
+                        borderRadius: '50%',
+                        boxShadow: `0 0 8px ${theme.accent}`,
+                        transition: 'background 0.6s ease'
+                      }} />
+                    )}
                   </button>
                 ))}
               </div>
@@ -594,7 +627,7 @@ function Dashboard() {
                 gap: '12px',
                 marginBottom: '20px'
               }}>
-                <span style={{ fontSize: '20px' }}>🎭</span>
+                <span style={{ fontSize: '20px' }}>{"🎭"}</span>
                 <h3 style={{
                   color: 'white',
                   margin: 0,
@@ -611,13 +644,14 @@ function Dashboard() {
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}>
-                  <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Current Emotion</span>
+                  <span style={{ color: theme.subtextColor, fontSize: '14px', transition: 'color 0.6s ease' }}>Current Emotion</span>
                   <span style={{
                     color: 'white',
                     fontSize: '14px',
                     padding: '4px 12px',
-                    background: 'rgba(168, 85, 247, 0.3)',
-                    borderRadius: '8px'
+                    background: `rgba(${theme.accentRgb}, 0.3)`,
+                    borderRadius: '8px',
+                    transition: 'background 0.6s ease'
                   }}>
                     {currentMood || 'None'}
                   </span>
@@ -627,7 +661,7 @@ function Dashboard() {
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}>
-                  <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Confidence</span>
+                  <span style={{ color: theme.subtextColor, fontSize: '14px', transition: 'color 0.6s ease' }}>Confidence</span>
                   <span style={{ color: 'white', fontSize: '14px' }}>
                     {(() => {
                       const stats = sentiment.sentimentState?.statistics;
@@ -642,7 +676,7 @@ function Dashboard() {
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}>
-                  <span style={{ color: '#c4b5fd', fontSize: '14px' }}>Trend</span>
+                  <span style={{ color: theme.subtextColor, fontSize: '14px', transition: 'color 0.6s ease' }}>Trend</span>
                   <span style={{ color: 'white', fontSize: '14px' }}>
                     {sentiment.musicData?.trend || 'stable'}
                   </span>
@@ -687,7 +721,7 @@ function Dashboard() {
                     alignItems: 'center',
                     cursor: 'pointer'
                   }}>
-                    <span style={{ color: '#c4b5fd', fontSize: '14px' }}>
+                    <span style={{ color: theme.subtextColor, fontSize: '14px', transition: 'color 0.6s ease' }}>
                       {setting.label}
                     </span>
                     <input
@@ -696,7 +730,7 @@ function Dashboard() {
                       style={{
                         width: '20px',
                         height: '20px',
-                        accentColor: '#a855f7',
+                        accentColor: theme.accent,
                         cursor: 'pointer'
                       }}
                     />

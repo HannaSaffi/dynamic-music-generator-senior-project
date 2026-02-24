@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-export function AudioVisualizer({ isActive }) {
+export function AudioVisualizer({ isActive, waveColors }) {
   const [bars, setBars] = useState(Array(40).fill(20));
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function AudioVisualizer({ isActive }) {
           style={{
             width: '100%',
             height: `${height}%`,
-            background: 'linear-gradient(to top, #a855f7, #ec4899)',
+            background: `linear-gradient(to top, ${waveColors?.[0] || '#a855f7'}, ${waveColors?.[1] || '#ec4899'})`,
             borderRadius: '9999px',
             minHeight: '4px',
             transition: 'height 0.1s ease'

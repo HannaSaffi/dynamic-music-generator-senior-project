@@ -10,6 +10,7 @@ class AudioService {
     this.currentTrackName = null;
     this.volume = 0.7;
     this.isPlaying = false;
+    this.playingIntro = false;
     this.listeners = new Set();
     
     // Actual track filenames per emotion
@@ -62,6 +63,32 @@ class AudioService {
   }
 
   /**
+   * Play intro music (loops until first emotion is detected)
+   */
+  async playIntro() {
+    console.log('🎵 Playing intro music');
+    this.playingIntro = true;
+    const path = '/audio/intro/intro.mp3';
+    this.currentTrackName = 'intro.mp3';
+
+    const introAudio = new Audio(path);
+    introAudio.volume = 0;
+    introAudio.loop = true;
+
+    try {
+      await introAudio.play();
+      await this.fadeIn(introAudio);
+      this.currentAudio = introAudio;
+      this.currentEmotion = 'intro';
+      this.isPlaying = true;
+      this.notifyListeners();
+    } catch (error) {
+      console.error('Failed to play intro:', error);
+      this.playingIntro = false;
+    }
+  }
+
+  /**
    * Play music for detected emotion
    */
   async playForEmotion(emotion) {
@@ -78,12 +105,17 @@ class AudioService {
       emotion = 'joy';
     }
 
-    // Skip if same emotion already playing
-    if (emotion === this.currentEmotion && this.isPlaying) {
+    // Skip if same emotion already playing (but not if transitioning from intro)
+    if (emotion === this.currentEmotion && this.isPlaying && !this.playingIntro) {
       return;
     }
 
-    console.log(`🎵 Switching to ${emotion} music`);
+    if (this.playingIntro) {
+      console.log(`🎵 Intro ending — crossfading to ${emotion} music`);
+      this.playingIntro = false;
+    } else {
+      console.log(`🎵 Switching to ${emotion} music`);
+    }
     await this.crossfadeTo(emotion);
   }
 
@@ -282,6 +314,7 @@ class AudioService {
       this.currentAudio = null;
     }
     this.isPlaying = false;
+    this.playingIntro = false;
     this.currentEmotion = null;
     this.currentTrackName = null;
     this.notifyListeners();

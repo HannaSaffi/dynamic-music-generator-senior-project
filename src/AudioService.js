@@ -1,6 +1,6 @@
 /**
  * Audio Service for Emotion-Based Music Playback
- * Plays pre-saved tracks based on detected emotions
+ * Plays pre-saved tracks based on detected emotions and context modes
  */
 
 class AudioService {
@@ -8,46 +8,84 @@ class AudioService {
     this.currentAudio = null;
     this.currentEmotion = null;
     this.currentTrackName = null;
+    this.currentMode = 'casual';
     this.volume = 0.7;
     this.isPlaying = false;
     this.playingIntro = false;
     this.listeners = new Set();
-    
-    // Actual track filenames per emotion
-    this.emotionTracks = {
-      intro: ['intro.mp3'],
+
+    // Shared filenames for casual, boardgames, and dnd
+    const sharedTracks = {
       joy: ['happy.mp3', 'acoustic-upbeat.mp3', 'happy-acoustic-guitar.mp3', 'pop-upbeat-pop-music.mp3', 'upbeat-acoustic-happy-strums.mp3', 'upbeat-acoustic.mp3'],
-      sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.mp3', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'], // Aleem will add
-      anger: ['angry.mp3', 'heavy-punky.mp3', 'intense-chase.mp3', 'intense-hard-rock.mp3', 'sport-action-rock.mp3'], // Aleem will add
+      sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.mp3', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'],
+      anger: ['angry.mp3', 'heavy-punky.mp3', 'intense-chase.mp3', 'intense-hard-rock.mp3', 'sport-action-rock.mp3'],
       fear: ['horror.mp3', 'horrorDoll.mp3', 'suspense.mp3', 'tension.mp3', 'darkAmbient.mp3'],
       surprise: ['fantasy.mp3', 'magical.mp3', 'mystery.mp3', 'surprise.mp3', 'unexpected.mp3'],
       disgust: ['creepy.mp3', 'darkDrone.mp3', 'eerie.mp3', 'unsettling.mp3', 'weird.mp3']
     };
-    
+
+    const emptyTracks = {
+      joy: [],
+      sadness: [],
+      anger: [],
+      fear: [],
+      surprise: [],
+      disgust: []
+    };
+
+    // Tracks organized by mode then emotion
+    this.emotionTracks = {
+      casual: { ...sharedTracks },
+      boardgames: { ...sharedTracks },
+      dnd: { ...sharedTracks },
+      meditation: { ...emptyTracks },
+      therapy: { ...emptyTracks }
+    };
+
     // Avoid immediate repeats
     this.lastPlayedTrack = {};
+  }
+
+  /**
+   * Set the current context mode
+   */
+  setMode(mode) {
+    const validModes = ['casual', 'boardgames', 'dnd', 'meditation', 'therapy'];
+    if (!validModes.includes(mode)) {
+      console.warn(`Unknown mode: ${mode}, defaulting to casual`);
+      mode = 'casual';
+    }
+    this.currentMode = mode;
+    console.log(`🎵 Mode set to: ${mode}`);
+    this.notifyListeners();
   }
 
   /**
    * Get random track for emotion (avoids repeat)
    */
   getRandomTrack(emotion) {
-    const tracks = this.emotionTracks[emotion] || [];
-    
+    const modeTracks = this.emotionTracks[this.currentMode] || this.emotionTracks['casual'];
+    const tracks = modeTracks[emotion] || [];
+
     if (tracks.length === 0) {
-      console.warn(`No tracks for ${emotion}, falling back to joy`);
-      return { track: this.emotionTracks['joy'][0], fallbackEmotion: 'joy' };
+      console.warn(`No tracks for ${emotion} in ${this.currentMode}, falling back to joy`);
+      const joyTracks = modeTracks['joy'] || [];
+      if (joyTracks.length === 0) {
+        console.warn(`No joy tracks in ${this.currentMode} either`);
+        return { track: null, fallbackEmotion: null };
+      }
+      return { track: joyTracks[0], fallbackEmotion: 'joy' };
     }
-    
+
     if (tracks.length === 1) {
       return { track: tracks[0], fallbackEmotion: null };
     }
-    
+
     let track;
     do {
       track = tracks[Math.floor(Math.random() * tracks.length)];
     } while (track === this.lastPlayedTrack[emotion] && tracks.length > 1);
-    
+
     this.lastPlayedTrack[emotion] = track;
     return { track, fallbackEmotion: null };
   }
@@ -57,18 +95,19 @@ class AudioService {
    */
   getAudioPath(emotion) {
     const { track, fallbackEmotion } = this.getRandomTrack(emotion);
+    if (!track) return null;
     const actualEmotion = fallbackEmotion || emotion;
     this.currentTrackName = track;
-    return `/audio/${actualEmotion}/${track}`;
+    return `/audio/${this.currentMode}/${actualEmotion}/${track}`;
   }
 
   /**
    * Play intro music (loops until first emotion is detected)
    */
   async playIntro() {
-    console.log('🎵 Playing intro music');
+    console.log(`🎵 Playing intro music for ${this.currentMode} mode`);
     this.playingIntro = true;
-    const path = '/audio/intro/intro.mp3';
+    const path = `/audio/${this.currentMode}/intro/intro.mp3`;
     this.currentTrackName = 'intro.mp3';
 
     const introAudio = new Audio(path);
@@ -83,7 +122,8 @@ class AudioService {
       this.isPlaying = true;
       this.notifyListeners();
     } catch (error) {
-      console.error('Failed to play intro:', error);
+      // Silently skip if no intro file exists for this mode
+      console.log(`No intro available for ${this.currentMode} mode, skipping`);
       this.playingIntro = false;
     }
   }
@@ -93,16 +133,21 @@ class AudioService {
    */
   async playForEmotion(emotion) {
     const validEmotions = ['joy', 'sadness', 'anger', 'fear', 'surprise', 'disgust'];
-    
+
     if (!validEmotions.includes(emotion)) {
       console.warn(`Unknown emotion: ${emotion}, defaulting to joy`);
       emotion = 'joy';
     }
 
-    // Check if we have tracks for this emotion
-    if (this.emotionTracks[emotion].length === 0) {
-      console.warn(`No tracks for ${emotion}, falling back to joy`);
+    // Check if we have tracks for this emotion in current mode
+    const modeTracks = this.emotionTracks[this.currentMode] || this.emotionTracks['casual'];
+    if (!modeTracks[emotion] || modeTracks[emotion].length === 0) {
+      console.warn(`No tracks for ${emotion} in ${this.currentMode}, falling back to joy`);
       emotion = 'joy';
+      if (!modeTracks['joy'] || modeTracks['joy'].length === 0) {
+        console.warn(`No tracks available in ${this.currentMode} mode`);
+        return;
+      }
     }
 
     // Skip if same emotion already playing (but not if transitioning from intro)
@@ -124,15 +169,19 @@ class AudioService {
    */
   async crossfadeTo(emotion) {
     const path = this.getAudioPath(emotion);
+    if (!path) {
+      console.warn('No audio path available, skipping crossfade');
+      return;
+    }
     console.log(`🎵 Playing: ${path}`);
-    
+
     const newAudio = new Audio(path);
     newAudio.volume = 0;
     newAudio.loop = true;
 
     try {
       await newAudio.play();
-      
+
       // Crossfade
       if (this.currentAudio) {
         await this.crossfade(this.currentAudio, newAudio);
@@ -140,12 +189,12 @@ class AudioService {
         // First track - just fade in
         await this.fadeIn(newAudio);
       }
-      
+
       this.currentAudio = newAudio;
       this.currentEmotion = emotion;
       this.isPlaying = true;
       this.notifyListeners();
-      
+
     } catch (error) {
       console.error('Failed to play audio:', error);
       if (error.name === 'NotAllowedError') {
@@ -166,12 +215,12 @@ class AudioService {
 
       const interval = setInterval(() => {
         step++;
-        
+
         // Fade out old
         if (oldAudio) {
           oldAudio.volume = Math.max(0, this.volume - (volumeStep * step));
         }
-        
+
         // Fade in new
         newAudio.volume = Math.min(this.volume, volumeStep * step);
 
@@ -287,6 +336,7 @@ class AudioService {
       isPlaying: this.isPlaying,
       currentEmotion: this.currentEmotion,
       currentTrack: this.currentTrackName,
+      currentMode: this.currentMode,
       volume: this.volume * 100
     };
   }

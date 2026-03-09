@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { VoiceTranscriberDisplay } from './components/VoiceTranscriber';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { useSentimentWithTranscription } from './useSentimentAnalysis';
 import { audioService } from './AudioService';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const themeMap = {
   casual: {
@@ -74,6 +75,21 @@ function Dashboard() {
 
   // Sentiment analysis
   const sentiment = useSentimentWithTranscription(transcript + interimTranscript);
+
+  // Memoize chart data based on statistics to prevent unnecessary re-renders
+  const chartData = useMemo(() => {
+    const stats = sentiment.sentimentState?.statistics;
+    if (!stats || stats.totalAnalyzed === 0) return null;
+
+    return [
+      { name: 'Joy', count: stats.joyCount || 0, fill: '#FFD700' },
+      { name: 'Sadness', count: stats.sadnessCount || 0, fill: '#6495ED' },
+      { name: 'Anger', count: stats.angerCount || 0, fill: '#FF4500' },
+      { name: 'Fear', count: stats.fearCount || 0, fill: '#800080' },
+      { name: 'Surprise', count: stats.surpriseCount || 0, fill: '#FF69B4' },
+      { name: 'Disgust', count: stats.disgustCount || 0, fill: '#556B2F' },
+    ];
+  }, [sentiment.sentimentState?.statistics]);
 
   // Connect sentiment to audio playback using recent emotion history (not cumulative stats)
   useEffect(() => {
@@ -685,6 +701,55 @@ function Dashboard() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Emotion Distribution Chart */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
+              padding: '24px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              pointerEvents: 'none'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '20px'
+              }}>
+                <span style={{ fontSize: '20px' }}>🎭</span>
+                <h3 style={{
+                  color: 'white',
+                  margin: 0,
+                  fontSize: '18px',
+                  fontWeight: '600'
+                }}>
+                  Emotion Distribution
+                </h3>
+              </div>
+
+              {!chartData ? (
+                <p style={{ color: theme.subtextColor, fontSize: '14px', textAlign: 'center', margin: '20px 0' }}>
+                  Start speaking to see emotion data...
+                </p>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={chartData}>
+                    <XAxis dataKey="name" tick={{ fill: '#ccc', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fill: '#ccc', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={index} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
 
             {/* Quick Settings */}

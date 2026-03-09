@@ -571,7 +571,10 @@ function Dashboard() {
                 {contextModes.map((mode) => (
                   <button
                     key={mode.id}
-                    onClick={() => setSelectedMode(mode.id)}
+                    onClick={() => {
+                      setSelectedMode(mode.id);
+                      audioService.setMode(mode.id);
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',

@@ -49,15 +49,19 @@ class AudioService {
   /**
    * Set the current context mode
    */
-  setMode(mode) {
+  async setMode(mode) {
     const validModes = ['casual', 'boardgames', 'dnd', 'meditation', 'therapy'];
     if (!validModes.includes(mode)) {
       console.warn(`Unknown mode: ${mode}, defaulting to casual`);
       mode = 'casual';
     }
+    if (mode === this.currentMode) return;
+    await this.fadeOut();
+    this.currentEmotion = null;
     this.currentMode = mode;
     console.log(`🎵 Mode set to: ${mode}`);
     this.notifyListeners();
+    await this.playIntro();
   }
 
   /**
@@ -114,6 +118,20 @@ class AudioService {
     introAudio.volume = 0;
     introAudio.loop = true;
 
+    // Check if the intro file exists before trying to play
+    try {
+      const response = await fetch(path, { method: 'HEAD' });
+      if (!response.ok) {
+        console.log(`No intro available for ${this.currentMode} mode, skipping`);
+        this.playingIntro = false;
+        return;
+      }
+    } catch {
+      console.log(`No intro available for ${this.currentMode} mode, skipping`);
+      this.playingIntro = false;
+      return;
+    }
+
     try {
       await introAudio.play();
       await this.fadeIn(introAudio);
@@ -122,8 +140,7 @@ class AudioService {
       this.isPlaying = true;
       this.notifyListeners();
     } catch (error) {
-      // Silently skip if no intro file exists for this mode
-      console.log(`No intro available for ${this.currentMode} mode, skipping`);
+      console.log(`Could not play intro for ${this.currentMode} mode, skipping`);
       this.playingIntro = false;
     }
   }

@@ -12,15 +12,15 @@
 ---
 
 ## 📋 Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [How It Works](#how-it-works)
-- [Architecture](#architecture)
-- [Technology Stack](#technology-stack)
-- [Context Modes](#context-modes)
-- [Quick Start](#quick-start)
-- [Key Metrics](#key-metrics)
-- [Team](#team)
+- [Overview](#-overview)
+- [Features](#-features)
+- [How It Works](#️-how-it-works)
+- [Architecture](#️-architecture)
+- [Technology Stack](#️-technology-stack)
+- [Context Modes](#-context-modes)
+- [Quick Start](#-quick-start)
+- [Key Metrics](#-key-metrics)
+- [Team](#-team)
 
 ---
 

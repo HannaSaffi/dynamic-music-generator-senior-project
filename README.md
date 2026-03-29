@@ -1,123 +1,239 @@
-# 🎤 Dynamic Music Generator - Senior Project
+# 🎵 Dynamic Music Generator
+### *Your conversation, transformed into music*
 
-A voice-controlled music generation system for D&D gameplay that uses real-time speech recognition to detect keywords and generate appropriate background music.
+> A full-stack web application that detects emotions from real-time speech and plays contextually appropriate music — automatically, intelligently, in real time.
 
-## 📊 Project Status
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat&logo=node.js)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat&logo=mongodb)
+![Python](https://img.shields.io/badge/Python-Flask-3776AB?style=flat&logo=python)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.1-EE4C2C?style=flat&logo=pytorch)
 
-**Current Phase:** 1 of 8 - Voice Transcription ✅  
-**Progress:** ~12%  
-**Last Updated:** October 2025
+---
+
+## 📋 Table of Contents
+- [Overview](#-overview)
+- [Features](#-features)
+- [How It Works](#️-how-it-works)
+- [Architecture](#️-architecture)
+- [Technology Stack](#️-technology-stack)
+- [Context Modes](#-context-modes)
+- [Quick Start](#-quick-start)
+- [Key Metrics](#-key-metrics)
+- [Team](#-team)
+
+---
+
+## 🎯 Overview
+
+Dynamic Music Generator is a senior capstone project built at Trinity College. It listens to your speech in real time, analyzes the emotional tone of your words using a custom NLP engine, and plays music that matches your mood — all without any user input beyond talking.
+
+The system supports five distinct **context modes**, each with its own color theme, music library, and emotional response profile — from casual conversation to full D&D adventure sessions.
+
+---
+
+## ✨ Features
+
+### 🎤 Real-Time Speech Capture
+- Browser-native transcription via the **Web Speech API** — no external API calls
+- Continuous transcription as the user speaks
+- Zero setup required for the end user
+
+### 🧠 Emotion Detection
+- Custom **keyword-based NLP engine** built from scratch
+- Emotion lexicons with negation handling (e.g. *"not happy"* → not joy)
+- Confidence scoring across **6 emotion categories**: Joy, Sadness, Anger, Fear, Surprise, Disgust
+- Dominant emotion calculated from accumulated speech history — not just the latest snippet
+
+### 🎵 Adaptive Music Playback
+- Music changes automatically based on detected emotion and active context mode
+- Smooth fade out/fade in between tracks
+- Intro song plays when switching modes
+- Music waits for speech before starting, staying in sync with the conversation
+
+### 📊 Live Emotion Visualizer
+- Real-time Recharts bar chart showing emotional distribution as you speak
+- Updates continuously as new speech is detected
+
+### 🤖 AI Music Generation
+- Integrated **Meta's MusicGen** model via AudioCraft
+- Runs on Trinity's remote GPU server (NVIDIA RTX 4090)
+- Generates music dynamically based on emotion + context mode as input prompts
+- Flask API bridges the React frontend to the MusicGen backend
+
+### 🎭 5 Context Modes
+Each mode has a unique color theme, music library, and emotional profile. See [Context Modes](#context-modes) below.
+
+---
+
+## ⚙️ How It Works
+
+```
+User speaks → Web Speech API → Emotion Engine → Music Selection/Generation
+   🎤              📝                🧠                    🎵
+```
+
+| Step | Component | Description |
+|------|-----------|-------------|
+| 1 | Web Speech API | Browser-native voice-to-text, continuous transcription |
+| 2 | Keyword NLP Engine | Detects emotion from transcribed text with confidence scoring |
+| 3 | AudioCraft / MusicGen | AI-generated music based on emotion + mode (GPU server) |
+| 4 | Library Selection | Emotion-matched pre-saved tracks as complement to AI generation |
+
+---
+
+## 🏗️ Architecture
+
+```
+React Frontend
+      │
+      ├── Web Speech API (real-time transcription)
+      ├── Keyword NLP Engine (emotion detection)
+      ├── Recharts (live emotion visualizer)
+      └── HTML5 Audio (music playback)
+      │
+      ↓ REST API (JWT Auth)
+Node.js / Express Backend
+      │
+      ├── MongoDB Atlas (users, sessions, songs)
+      └── Flask API → MusicGen / AudioCraft
+                        (maple.cs.trincoll.edu — RTX 4090)
+```
+
+### Frontend
+- Component-based React architecture separating speech, emotion, audio, and visualization logic
+- Dynamic re-rendering on emotion changes
+- Mode-based theming that recolors the entire UI on context switch
+- Audio organized in a mode+emotion folder hierarchy: `public/audio/{mode}/{emotion}/`
+
+### Backend
+- Node.js/Express REST API with JWT authentication
+- MongoDB Atlas for user management, song storage, and D&D session tracking
+- Emotion-based song matching at the API level
+
+### AI Layer
+- Python 3.11 conda environment (`musicgen311`) on maple.cs.trincoll.edu
+- PyTorch 2.1.0 with CUDA 12.1
+- Flask server bridges the React frontend to MusicGen inference
+- Jupyter-based model interface for development and testing
+
+---
+
+## 🛠️ Technology Stack
+
+### Frontend
+| Technology | Purpose |
+|-----------|---------|
+| React 18 | Component-based UI, real-time state management |
+| Web Speech API | Browser-native speech transcription |
+| Recharts | Live emotion distribution chart |
+| HTML5 Audio | Adaptive music playback |
+| Custom NLP Engine | Keyword-based emotion detection |
+
+### Backend
+| Technology | Purpose |
+|-----------|---------|
+| Node.js + Express | REST API server |
+| MongoDB Atlas | Database (users, songs, sessions) |
+| JWT | Authentication |
+| Flask (Python) | Bridge to MusicGen AI model |
+
+### AI / Music Generation
+| Technology | Purpose |
+|-----------|---------|
+| Meta MusicGen | AI music generation model |
+| AudioCraft | MusicGen framework |
+| PyTorch 2.1 + CUDA 12.1 | GPU inference |
+| NVIDIA RTX 4090 | Hardware (maple.cs.trincoll.edu) |
+
+---
+
+## 🎭 Context Modes
+
+| Mode | Theme Color | Use Case |
+|------|------------|----------|
+| 🗣️ Casual Conversation | Purple | Everyday use, default mode |
+| 🧘 Meditation | Blue | Calm, focused sessions |
+| 💬 Therapy | Soft Purple | Emotional support contexts |
+| 🎲 Board Games | Orange/Red | Fun, competitive energy |
+| ⚔️ D&D Adventure | Deep Red | Tabletop RPG sessions |
+
+Each mode has its own:
+- Color-themed UI
+- Music library organized by emotion
+- Intro song on mode selection
+- Emotional response profile
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- MongoDB Atlas account
+- Python 3.11 (for AI generation)
+- SSH access to maple.cs.trincoll.edu (Trinity students only)
+
+### Frontend + Backend
+```bash
+git clone https://github.com/your-repo/dynamic-music-generator-senior-project.git
+cd dynamic-music-generator-senior-project
+
+# Install dependencies
+cd client && npm install
+cd ../server && npm install
+
+# Set up environment variables
+cp .env.example .env
+# Add your MongoDB URI and JWT secret
+
+# Run both
+npm run dev
+```
+
+### AI Music Generation (maple server)
+```bash
+# SSH into maple
+ssh username@maple.cs.trincoll.edu
+
+# Activate conda environment
+conda activate musicgen311
+
+# Start Flask server
+cd ~/dynamic-music-generator/audioCraft
+python app.py
+```
+
+---
+
+## 📊 Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Emotion categories | 6 (Joy, Sadness, Anger, Fear, Surprise, Disgust) |
+| Context modes | 5 |
+| NLP approach | Custom keyword engine (no external ML dependencies) |
+| Audio folder structure | `{mode}/{emotion}/` hierarchy |
+| GPU used for AI generation | NVIDIA RTX 4090 |
+| API endpoints | REST (JWT-authenticated) |
+| Database | MongoDB Atlas |
+
+---
 
 ## 👥 Team
 
-- **Hanna Saffi** - Voice Recognition & Logic
-- **Aleem** - UI/UX & Styling
+**Hanna Saffi** — Frontend, Emotion Detection, Flask/AI Integration, Full-Stack Implementation
 
-## 🚀 Quick Start
-```bash
-# Clone the repository
-git clone git@github.com:HannaSaffi/Dynamic-Music-Generator---Senior-Project.git
+**Aleem Shazif** — UI/UX Design, Music Track Sourcing, AI Music Generation Research
 
-# Navigate to project
-cd Dynamic-Music-Generator---Senior-Project
+---
 
-# Install dependencies
-npm install
+## 📚 Course Information
 
-# Start development server
-npm start
-```
+- **Course:** Senior Capstone Project
+- **Institution:** Trinity College, Hartford CT
+- **Stack:** React · Node.js · MongoDB · Python · Flask · MusicGen · AudioCraft
 
-Open http://localhost:3000 and click "Start Recording"
+---
 
-## ✨ Phase 1 Features
-
-- ✅ Real-time voice transcription
-- ✅ Visual recording indicator
-- ✅ Interim and final results display
-- ✅ Browser compatibility checking
-- ✅ Privacy-focused (local processing only)
-- ✅ Responsive design for all devices
-
-## 🛠️ Tech Stack
-
-- React 18
-- Web Speech API
-- CSS3 Animations
-- React Hooks (Custom hooks for transcription)
-
-## 📋 Project Phases
-
-1. ✅ **Voice Transcription** - Real-time speech-to-text
-2. 🔜 **Keyword Detection** - Extract D&D scene keywords
-3. ⏳ **Music API Integration** - Connect to music generation service
-4. ⏳ **Audio Mixing** - Smooth transitions and layering
-5. ⏳ **Backend & WebSockets** - Real-time multiplayer support
-6. ⏳ **UI/UX Enhancement** - Full interface design
-7. ⏳ **Testing & Optimization** - Performance tuning
-8. ⏳ **Deployment** - Production release
-
-## 🎯 Goals
-
-Create an immersive D&D experience where:
-- DM's speech is transcribed in real-time
-- Keywords trigger appropriate music (combat, tavern, dungeon, etc.)
-- Music adapts dynamically to gameplay
-- Multiple players can connect simultaneously
-
-## 🌐 Browser Support
-
-| Browser | Support |
-|---------|---------|
-| Chrome  | ✅ Full Support |
-| Edge    | ✅ Full Support |
-| Safari  | ✅ Full Support |
-| Firefox | ⚠️ Limited Support |
-
-## 📁 Project Structure
-```
-Dynamic-Music-Generator---Senior-Project/
-├── public/
-│   └── index.html
-├── src/
-│   ├── components/
-│   │   └── VoiceTranscriber.js    # Voice recognition hook
-│   ├── App.js                      # Main component
-│   ├── App.css                     # Styles
-│   └── index.js                    # Entry point
-├── package.json
-└── README.md
-```
-
-## 🤝 Contributing
-
-### For Team Members:
-
-1. Always work on your own branch
-2. Pull latest changes before starting work
-3. Commit frequently with clear messages
-4. Test before pushing
-```bash
-# Create your branch
-git checkout -b your-name-feature
-
-# Make changes, then:
-git add .
-git commit -m "Clear description of what you did"
-git push -u origin your-name-feature
-```
-
-## 📝 License
-
-Educational project for senior thesis.
-
-## 👤 Authors
-
-- Hanna Saffi
-- Aleem
-
-## 🙏 Acknowledgments
-
-- Adviser: [Your Adviser's Name]
-- Course: [Course Name/Number]
-- Institution: [Your University]
+*Built with 🎵 and a lot of debugging at Trinity College*

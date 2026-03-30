@@ -37,7 +37,14 @@ class AudioService {
     this.emotionTracks = {
       casual: { ...sharedTracks },
       boardgames: { ...sharedTracks },
-      dnd: { ...sharedTracks },
+      dnd: {
+        joy: ['medievalJoy.mp3'],
+        sadness: ['melancholy-sad-dramatic-piano.m4a'],
+        anger: ['angry-maiden-nu-metal.mp3', 'heat-of-heroes-battle.mp3'],
+        fear: [...sharedTracks.fear],
+        surprise: [...sharedTracks.surprise],
+        disgust: [...sharedTracks.disgust]
+      },
       meditation: { ...emptyTracks },
       therapy: { ...emptyTracks }
     };

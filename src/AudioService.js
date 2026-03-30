@@ -17,7 +17,7 @@ class AudioService {
     // Shared filenames for casual, boardgames, and dnd
     const sharedTracks = {
       joy: ['happy.mp3', 'acoustic-upbeat.mp3', 'happy-acoustic-guitar.mp3', 'pop-upbeat-pop-music.mp3', 'upbeat-acoustic-happy-strums.mp3', 'upbeat-acoustic.mp3'],
-      sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.mp3', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'],
+      sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.m4a', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'],
       anger: ['angry.mp3', 'heavy-punky.mp3', 'intense-chase.mp3', 'intense-hard-rock.mp3', 'sport-action-rock.mp3'],
       fear: ['horror.mp3', 'horrorDoll.mp3', 'suspense.mp3', 'tension.mp3', 'darkAmbient.mp3'],
       surprise: ['fantasy.mp3', 'magical.mp3', 'mystery.mp3', 'surprise.mp3', 'unexpected.mp3'],

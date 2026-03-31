@@ -97,7 +97,7 @@ function Dashboard() {
     if (!history || history.length === 0 || !sentiment.isInitialized || !isListening) return;
 
     // Use last 3 results to determine dominant emotion (responsive to changes)
-    const recentHistory = history.slice(-3);
+    const recentHistory = history.slice(-5);
     const recentCounts = {};
     for (const entry of recentHistory) {
       recentCounts[entry.emotion] = (recentCounts[entry.emotion] || 0) + 1;

@@ -37,13 +37,13 @@ class AudioService {
     this.emotionTracks = {
       casual: { ...sharedTracks },
       boardgames: { ...sharedTracks },
-      dnd: {
+      dnd: { //medievel based music
         joy: ['medievalJoy.mp3'],
         sadness: ['melancholy-sad-dramatic-piano.m4a'],
-        anger: ['angry-maiden-nu-metal.mp3', 'heat-of-heroes-battle.mp3'],
-        fear: [...sharedTracks.fear],
-        surprise: [...sharedTracks.surprise],
-        disgust: [...sharedTracks.disgust]
+        anger: ['angry-maiden-nu-metal.mp3', 'heat-of-heroes-battle.mp3', 'epic-battle.wav', 'traitor.wav'],
+        fear: ['horror.mp3', 'mystery-reveal.wav', 'tension.mp3', 'darkAmbient.mp3'],
+        surprise: ['fantasy.mp3', 'magical-surprise.wav', 'shocking-news-medieval.wav', 'surprise.mp3', 'unexpected.mp3'],
+        disgust: ['creepy.mp3', 'darkDrone.mp3', 'eerie.mp3', 'unsettling.mp3', 'disgust-unsettling-weird-goosebumps.wav']
       },
       meditation: { ...emptyTracks },
       therapy: { ...emptyTracks }

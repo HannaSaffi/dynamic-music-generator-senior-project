@@ -14,39 +14,48 @@ class AudioService {
     this.playingIntro = false;
     this.listeners = new Set();
 
-    // Shared filenames for casual, boardgames, and dnd
-    const sharedTracks = {
-      joy: ['happy.mp3', 'acoustic-upbeat.mp3', 'happy-acoustic-guitar.mp3', 'pop-upbeat-pop-music.mp3', 'upbeat-acoustic-happy-strums.mp3', 'upbeat-acoustic.mp3'],
-      sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.m4a', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'],
-      anger: ['angry.mp3', 'heavy-punky.mp3', 'intense-chase.mp3', 'intense-hard-rock.mp3', 'sport-action-rock.mp3'],
-      fear: ['horror.mp3', 'horrorDoll.mp3', 'suspense.mp3', 'tension.mp3', 'darkAmbient.mp3'],
-      surprise: ['fantasy.mp3', 'magical.mp3', 'mystery.mp3', 'surprise.mp3', 'unexpected.mp3'],
-      disgust: ['creepy.mp3', 'darkDrone.mp3', 'eerie.mp3', 'unsettling.mp3', 'weird.mp3']
-    };
-
-    const emptyTracks = {
-      joy: [],
-      sadness: [],
-      anger: [],
-      fear: [],
-      surprise: [],
-      disgust: []
-    };
-
     // Tracks organized by mode then emotion
     this.emotionTracks = {
-      casual: { ...sharedTracks },
-      boardgames: { ...sharedTracks },
-      dnd: { //medievel based music
-        joy: ['medievalJoy.mp3'],
-        sadness: ['melancholy-sad-dramatic-piano.m4a'],
-        anger: ['angry-maiden-nu-metal.mp3', 'heat-of-heroes-battle.mp3', 'epic-battle.wav', 'traitor.wav'],
-        fear: ['horror.mp3', 'mystery-reveal.wav', 'tension.mp3', 'darkAmbient.mp3'],
-        surprise: ['fantasy.mp3', 'magical-surprise.wav', 'shocking-news-medieval.wav', 'surprise.mp3', 'unexpected.mp3'],
-        disgust: ['creepy.mp3', 'darkDrone.mp3', 'eerie.mp3', 'unsettling.mp3', 'disgust-unsettling-weird-goosebumps.wav']
+      casual: {
+        joy: ['happy.mp3', 'acoustic-upbeat.mp3', 'happy-acoustic-guitar.mp3', 'pop-upbeat-pop-music.mp3', 'upbeat-acoustic-happy-strums.mp3', 'upbeat-acoustic.mp3'],
+        sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.mp3', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'],
+        anger: ['angry.mp3', 'heavy-punky.mp3', 'intense-chase.mp3', 'intense-hard-rock.mp3', 'sport-action-rock.mp3'],
+        fear: ['darkAmbient.mp3', 'horror.mp3', 'horrorDoll.mp3', 'suspense.mp3', 'tension.mp3'],
+        surprise: ['fantasy.mp3', 'magical.mp3', 'mystery.mp3', 'surprise.mp3', 'unexpected.mp3'],
+        disgust: ['creepy.mp3', 'darkDrone.mp3', 'eerie.mp3', 'unsettling.mp3', 'weird.mp3']
       },
-      meditation: { ...emptyTracks },
-      therapy: { ...emptyTracks }
+      boardgames: {
+        joy: ['happy.mp3', 'acoustic-upbeat.mp3', 'happy-acoustic-guitar.mp3', 'pop-upbeat-pop-music.mp3', 'upbeat-acoustic-happy-strums.mp3', 'upbeat-acoustic.mp3'],
+        sadness: ['melancholic-piano-amp-strings.mp3', 'melancholy-sad-dramatic-piano.mp3', 'sad-sorrowful-piano.mp3', 'sad-story.mp3', 'sad.mp3'],
+        anger: ['angry.mp3', 'heavy-punky.mp3', 'intense-chase.mp3', 'intense-hard-rock.mp3', 'sport-action-rock.mp3'],
+        fear: ['darkAmbient.mp3', 'horror.mp3', 'horrorDoll.mp3', 'suspense.mp3', 'tension.mp3'],
+        surprise: ['fantasy.mp3', 'magical.mp3', 'mystery.mp3', 'surprise.mp3', 'unexpected.mp3'],
+        disgust: ['creepy.mp3', 'darkDrone.mp3', 'eerie.mp3', 'unsettling.mp3', 'weird.mp3']
+      },
+      dnd: {
+        joy: ['happy-adventure.wav', 'happy-uplift-quest.wav', 'joyful.wav', 'medievalJoy.mp3'],
+        sadness: ['melancholy-and-despair.wav', 'sad-grief-ominous.wav', 'sadness-medieval.wav'],
+        anger: ['angry-maiden-nu-metal-flute-instrumental.mp3', 'epic-battle.wav', 'heat-of-heroes-battle.mp3', 'traitor.wav'],
+        fear: ['darkAmbient.mp3', 'horror.mp3', 'mystery-reveal.wav', 'tension.mp3'],
+        surprise: ['fantasy.mp3', 'magical-surprise.wav', 'shocking-news-medieval.wav', 'surprise.mp3', 'unexpected.mp3'],
+        disgust: ['creepy.mp3', 'darkDrone.mp3', 'disgust-unsettling-weird-goosebumps.wav', 'eerie.mp3', 'unsettling.mp3']
+      },
+      meditation: {
+        joy: ['meditation_joy_1.wav', 'music_for_video-uplifting-ambient-124569.mp3'],
+        sadness: ['meditation_sadness_1.wav', 'soundgallerybydmitrytaras-sad-piano-496878.mp3'],
+        anger: ['leberch-meditation-509071.mp3', 'meditation_anger_1.wav'],
+        fear: ['meditation_fear_1.wav', 'soundsbyamelia-slow-breathing-calm-instrumental-soundscape-457319.mp3'],
+        surprise: ['meditation_surprise_1.wav', 'metriko-cosmic-exploration-soundscape-364796.mp3'],
+        disgust: ['meditation_disgust_1.wav', 'meditativetiger-full-moon-cleansing-ritual-489159.mp3']
+      },
+      therapy: {
+        joy: ['leberch-piano-438549.mp3', 'therapy_joy_1.wav'],
+        sadness: ['do_what_you_want-relax-meditate-gentle-peaceful-291162.mp3', 'therapy_sadness_1.wav'],
+        anger: ['andriig-calm-nature-music-471361.mp3', 'therapy_anger_1.wav'],
+        fear: ['soundsbyamelia-slow-breathing-calm-instrumental-soundscape-457319.mp3', 'therapy_fear_1.wav'],
+        surprise: ['grand_project-easy-travel_short-1-332846.mp3', 'therapy_surprise_1.wav'],
+        disgust: ['senormusica81-ambient-neutral-v11-456867.mp3', 'therapy_disgust_1.wav']
+      }
     };
 
     // Avoid immediate repeats

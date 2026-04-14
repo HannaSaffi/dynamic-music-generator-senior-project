@@ -14,13 +14,14 @@ const server = http.createServer(app);
 connectDB();
 
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100
+  max: 100, // Adjust this as needed for your application's expected load
+  message: 'Too many requests from this IP, please try again after 15 minutes'
 });
 app.use('/api/', limiter);
 

@@ -224,7 +224,7 @@ python app.py
 
 **Hanna Saffi** — Frontend, Emotion Detection, Flask/AI Integration, Full-Stack Implementation
 
-**Aleem Shazif** — UI/UX Design, Music Track Sourcing, AI Music Generation Research
+**Aleem Ogunsanya** — UI/UX Design, Music Track Sourcing, AI Music Generation Research
 
 ---
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { VoiceTranscriberDisplay } from './components/VoiceTranscriber';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { useSentimentWithTranscription } from './useSentimentAnalysis';
 import { audioService } from './AudioService';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
 
 const themeMap = {
   casual: {
@@ -76,27 +76,44 @@ function Dashboard() {
   // Sentiment analysis
   const sentiment = useSentimentWithTranscription(transcript + interimTranscript);
 
-  // Memoize chart data based on statistics to prevent unnecessary re-renders
+  // Chart data for emotion distribution
+  // Depend on totalAnalyzed (a primitive) since the statistics object is mutated in place
+  const totalAnalyzed = sentiment.sentimentState?.statistics?.totalAnalyzed || 0;
   const chartData = useMemo(() => {
     const stats = sentiment.sentimentState?.statistics;
-    if (!stats || stats.totalAnalyzed === 0) return null;
-
+    if (!stats || totalAnalyzed === 0) return null;
     return [
-      { name: 'Joy', count: stats.joyCount || 0, fill: '#FFD700' },
-      { name: 'Sadness', count: stats.sadnessCount || 0, fill: '#6495ED' },
-      { name: 'Anger', count: stats.angerCount || 0, fill: '#FF4500' },
-      { name: 'Fear', count: stats.fearCount || 0, fill: '#800080' },
-      { name: 'Surprise', count: stats.surpriseCount || 0, fill: '#FF69B4' },
-      { name: 'Disgust', count: stats.disgustCount || 0, fill: '#556B2F' },
+      { name: 'Joy', value: Math.round(((stats.joyCount || 0) / totalAnalyzed) * 100), fill: '#FFD700' },
+      { name: 'Sadness', value: Math.round(((stats.sadnessCount || 0) / totalAnalyzed) * 100), fill: '#6495ED' },
+      { name: 'Anger', value: Math.round(((stats.angerCount || 0) / totalAnalyzed) * 100), fill: '#FF4500' },
+      { name: 'Fear', value: Math.round(((stats.fearCount || 0) / totalAnalyzed) * 100), fill: '#9B59B6' },
+      { name: 'Surprise', value: Math.round(((stats.surpriseCount || 0) / totalAnalyzed) * 100), fill: '#FF69B4' },
+      { name: 'Disgust', value: Math.round(((stats.disgustCount || 0) / totalAnalyzed) * 100), fill: '#2ECC71' },
     ];
-  }, [sentiment.sentimentState?.statistics]);
+  }, [totalAnalyzed, sentiment.sentimentState?.statistics]);
+
+  // Generate stable particle positions (max 10 for performance)
+  const particles = useMemo(() =>
+    Array.from({ length: 10 }, (_, i) => ({
+      id: i,
+      left: `${(i * 10.3 + 2) % 96 + 2}%`,
+      size: 6 + (i % 3) * 3,
+      duration: 16 + (i % 4) * 4,
+      delay: (i * 2.5) % 14,
+    })),
+  []);
 
   // Connect sentiment to audio playback using recent emotion history (not cumulative stats)
-  useEffect(() => {
-    const history = sentiment.sentimentState?.history;
-    if (!history || history.length === 0 || !sentiment.isInitialized || !isListening) return;
+  const currentMoodRef = useRef(currentMood);
+  currentMoodRef.current = currentMood;
 
-    // Use last 3 results to determine dominant emotion (responsive to changes)
+  useEffect(() => {
+    if (!sentiment.isInitialized || !isListening) return;
+
+    const history = sentiment.sentimentState?.history;
+    if (!history || history.length === 0) return;
+
+    // Use last 5 results to determine dominant emotion (responsive to changes)
     const recentHistory = history.slice(-5);
     const recentCounts = {};
     for (const entry of recentHistory) {
@@ -113,20 +130,16 @@ function Dashboard() {
     }
 
     console.log('🎯 Dominant emotion (recent):', dominantEmotion, '(count:', maxCount, '/ last', recentHistory.length, ')');
-    if (dominantEmotion !== currentMood) {
+    if (dominantEmotion !== currentMoodRef.current) {
       console.log('🎵 Switching audio to dominant emotion:', dominantEmotion);
       audioService.playForEmotion(dominantEmotion);
       setCurrentMood(dominantEmotion);
-    }
-    if (!isPlaying) {
       setIsPlaying(true);
     }
   }, [
-    sentiment.sentimentState?.history,
     sentiment.sentimentState?.statistics?.totalAnalyzed,
     sentiment.isInitialized,
     isListening,
-    currentMood,
   ]);
 
   // Sync volume with audioService
@@ -221,14 +234,15 @@ function Dashboard() {
   };
 
   const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      shouldListenRef.current = false;
-      recognitionRef.current.stop();
+    shouldListenRef.current = false;
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Already stopped
+      }
     }
-  };
-
-  const clearTranscript = () => {
-    setTranscript('');
+    setIsListening(false);
     setInterimTranscript('');
   };
 
@@ -271,9 +285,34 @@ function Dashboard() {
       minHeight: '100vh',
       background: theme.background,
       padding: '32px 16px',
-      transition: 'background 0.6s ease'
+      transition: 'background 0.6s ease',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+      {/* Ambient Particles */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            style={{
+              position: 'absolute',
+              left: p.left,
+              bottom: `-${p.size * 2}px`,
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              borderRadius: '50%',
+              background: `radial-gradient(circle at 30% 30%, ${theme.accent}, ${theme.accentSecondary}88)`,
+              boxShadow: `0 0 ${p.size * 2}px ${p.size}px rgba(${theme.accentRgb}, 0.15)`,
+              opacity: 0,
+              animation: `floatUp ${p.duration}s ${p.delay}s ease-in-out infinite`,
+              willChange: 'transform, opacity',
+              transition: 'background 0.6s ease, box-shadow 0.6s ease',
+            }}
+          />
+        ))}
+      </div>
+
+      <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Header */}
         <div style={{
           display: 'flex',
@@ -375,9 +414,10 @@ function Dashboard() {
                   onClick={() => {
                     if (isListening) {
                       stopListening();
-                      audioService.pause();
+                      audioService.stopAll();
                       setIsPlaying(false);
                     } else {
+                      audioService.stopAll();
                       startListening();
                       audioService.playIntro();
                       setIsPlaying(true);
@@ -551,13 +591,132 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Transcription & Sentiment Display */}
-            <VoiceTranscriberDisplay
-              transcript={transcript}
-              interimTranscript={interimTranscript}
-              sentiment={sentiment}
-              onClear={clearTranscript}
-            />
+            {/* Emotion Distribution */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
+              padding: '32px',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '24px'
+              }}>
+                <span style={{ fontSize: '20px' }}>{"📊"}</span>
+                <h3 style={{
+                  color: 'white',
+                  margin: 0,
+                  fontSize: '18px',
+                  fontWeight: '600'
+                }}>
+                  Session Emotions
+                </h3>
+              </div>
+
+              {!chartData ? (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '32px 0',
+                  gap: '12px'
+                }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: `rgba(${theme.accentRgb}, 0.15)`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px'
+                  }}>
+                    {"🎤"}
+                  </div>
+                  <p style={{
+                    color: theme.subtextColor,
+                    fontSize: '14px',
+                    margin: 0,
+                    transition: 'color 0.6s ease'
+                  }}>
+                    Start speaking to see emotion data
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={chartData} barCategoryGap="20%" isAnimationActive={false}>
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        allowDecimals={false}
+                        tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(v) => `${v}%`}
+                        width={40}
+                      />
+                      <Tooltip
+                        isAnimationActive={false}
+                        contentStyle={{
+                          background: 'rgba(0,0,0,0.85)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '10px',
+                          color: '#fff',
+                          fontSize: '13px',
+                          padding: '8px 14px'
+                        }}
+                        cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                        formatter={(value) => [`${value}%`, 'Share']}
+                      />
+                      <Bar dataKey="value" radius={[6, 6, 0, 0]} isAnimationActive={false}>
+                        {chartData.map((entry, index) => (
+                          <Cell key={index} fill={entry.fill} fillOpacity={0.85} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    marginTop: '16px',
+                    justifyContent: 'center'
+                  }}>
+                    {chartData.filter(d => d.value > 0).map((d) => (
+                      <span key={d.name} style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 10px',
+                        background: 'rgba(255,255,255,0.06)',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: 'rgba(255,255,255,0.8)'
+                      }}>
+                        <span style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: d.fill,
+                          display: 'inline-block'
+                        }} />
+                        {d.name} {d.value}%
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
 
           {/* Right Column - Context Mode & Emotion Detection */}
@@ -703,55 +862,6 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Emotion Distribution Chart */}
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '24px',
-              padding: '24px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              pointerEvents: 'none'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '20px'
-              }}>
-                <span style={{ fontSize: '20px' }}>🎭</span>
-                <h3 style={{
-                  color: 'white',
-                  margin: 0,
-                  fontSize: '18px',
-                  fontWeight: '600'
-                }}>
-                  Emotion Distribution
-                </h3>
-              </div>
-
-              {!chartData ? (
-                <p style={{ color: theme.subtextColor, fontSize: '14px', textAlign: 'center', margin: '20px 0' }}>
-                  Start speaking to see emotion data...
-                </p>
-              ) : (
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" tick={{ fill: '#ccc', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis allowDecimals={false} tick={{ fill: '#ccc', fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ background: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
-                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                    />
-                    <Bar dataKey="count" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={index} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-
             {/* Quick Settings */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.1)',
@@ -814,6 +924,12 @@ function Dashboard() {
         @keyframes pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
           50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        @keyframes floatUp {
+          0% { transform: translateY(0); opacity: 0; }
+          10% { opacity: 0.4; }
+          90% { opacity: 0.2; }
+          100% { transform: translateY(-105vh); opacity: 0; }
         }
       `}</style>
     </div>

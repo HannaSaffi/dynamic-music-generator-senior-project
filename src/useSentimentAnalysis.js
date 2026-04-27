@@ -139,7 +139,9 @@ export function useSentimentWithTranscription(
       sentiment.processText(transcriptionText);
       previousTextRef.current = transcriptionText;
     }
-  }, [transcriptionText, sentiment]);
+    // Only depend on transcriptionText and the stable processText callback,
+    // NOT the entire sentiment object (which is new every render → infinite loop)
+  }, [transcriptionText, sentiment.processText]);
 
   return sentiment;
 }

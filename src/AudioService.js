@@ -16,6 +16,8 @@ class AudioService {
     this.isPlaying = false;
     this.playingIntro = false;
     this.listeners = new Set();
+    // Track active fade intervals so they can be cancelled immediately
+    this._fadeIntervals = new Set();
 
     // Tracks organized by mode then emotion
     this.emotionTracks = {
@@ -79,8 +81,7 @@ class AudioService {
       mode = 'casual';
     }
     if (mode === this.currentMode) return;
-    await this.fadeOut();
-    this.currentEmotion = null;
+    this.stopAll();
     this.currentMode = mode;
     console.log(`🎵 Mode set to: ${mode}`);
     this.notifyListeners();
@@ -133,6 +134,8 @@ class AudioService {
    */
   async playIntro() {
     console.log(`🎵 Playing intro music for ${this.currentMode} mode`);
+    // Stop any existing audio before starting intro
+    this.stopAll();
     this.playingIntro = true;
     const path = `/audio/${this.currentMode}/intro/intro.mp3`;
     this.currentTrackName = 'intro.mp3';
@@ -216,6 +219,13 @@ class AudioService {
     }
     console.log(`🎵 Playing: ${path}`);
 
+    // Cancel any in-progress fades immediately
+    this._cancelAllFades();
+
+    // Capture the old audio before replacing
+    const oldAudio = this.currentAudio;
+    this.currentAudio = null;
+
     const newAudio = new Audio(path);
     newAudio.volume = 0;
     newAudio.loop = true;
@@ -223,11 +233,10 @@ class AudioService {
     try {
       await newAudio.play();
 
-      // Crossfade
-      if (this.currentAudio) {
-        await this.crossfade(this.currentAudio, newAudio);
+      // Crossfade old out, new in
+      if (oldAudio) {
+        await this.crossfade(oldAudio, newAudio);
       } else {
-        // First track - just fade in
         await this.fadeIn(newAudio);
       }
 
@@ -237,6 +246,8 @@ class AudioService {
       this.notifyListeners();
 
     } catch (error) {
+      // If new audio failed, kill it so it doesn't play silently
+      this._killAudio(newAudio);
       console.error('Failed to play audio:', error);
       if (error.name === 'NotAllowedError') {
         console.log('⚠️ Click anywhere to enable audio');
@@ -267,13 +278,13 @@ class AudioService {
 
         if (step >= steps) {
           clearInterval(interval);
-          if (oldAudio) {
-            oldAudio.pause();
-            oldAudio.src = '';
-          }
+          this._fadeIntervals.delete(interval);
+          // Fully stop and release the old audio
+          this._killAudio(oldAudio);
           resolve();
         }
       }, stepTime);
+      this._fadeIntervals.add(interval);
     });
   }
 
@@ -293,9 +304,11 @@ class AudioService {
 
         if (step >= steps) {
           clearInterval(interval);
+          this._fadeIntervals.delete(interval);
           resolve();
         }
       }, stepTime);
+      this._fadeIntervals.add(interval);
     });
   }
 
@@ -318,11 +331,37 @@ class AudioService {
 
         if (step >= steps) {
           clearInterval(interval);
+          this._fadeIntervals.delete(interval);
           audio.pause();
           resolve();
         }
       }, stepTime);
+      this._fadeIntervals.add(interval);
     });
+  }
+
+  /**
+   * Cancel all in-progress fade intervals immediately
+   */
+  _cancelAllFades() {
+    for (const interval of this._fadeIntervals) {
+      clearInterval(interval);
+    }
+    this._fadeIntervals.clear();
+  }
+
+  /**
+   * Immediately stop and release an Audio element
+   */
+  _killAudio(audio) {
+    if (!audio) return;
+    try {
+      audio.pause();
+      audio.src = '';
+      audio.load();
+    } catch (e) {
+      // Already released
+    }
   }
 
   /**
@@ -446,13 +485,21 @@ class AudioService {
       aiTrack.loop = true;
       this.aiAudio = aiTrack;
 
+      // Check if we're still playing this emotion (user may have switched)
+      if (this.currentEmotion !== emotion) {
+        console.log('🤖 Emotion changed while generating, discarding AI track');
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
+
       console.log('🤖 AI music ready, crossfading...');
 
       await aiTrack.play();
 
       // Crossfade from current track to AI track
-      if (this.currentAudio) {
-        await this.crossfade(this.currentAudio, aiTrack);
+      const oldAudio = this.currentAudio;
+      if (oldAudio) {
+        await this.crossfade(oldAudio, aiTrack);
       } else {
         await this.fadeIn(aiTrack);
       }
@@ -470,17 +517,18 @@ class AudioService {
   }
 
   /**
-   * Stop and cleanup
+   * Stop all audio immediately — kills fades, intro, emotion, and AI tracks
    */
-  stop() {
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio.src = '';
-      this.currentAudio = null;
-    }
-    if (this.aiAudio && this.aiAudio !== this.currentAudio) {
-      this.aiAudio.pause();
-      URL.revokeObjectURL(this.aiAudio.src);
+  stopAll() {
+    this._cancelAllFades();
+    this._killAudio(this.currentAudio);
+    this.currentAudio = null;
+    if (this.aiAudio) {
+      const src = this.aiAudio.src;
+      this._killAudio(this.aiAudio);
+      if (src.startsWith('blob:')) {
+        URL.revokeObjectURL(src);
+      }
       this.aiAudio = null;
     }
     this.isPlaying = false;
@@ -488,6 +536,13 @@ class AudioService {
     this.currentEmotion = null;
     this.currentTrackName = null;
     this.notifyListeners();
+  }
+
+  /**
+   * Stop and cleanup (alias for stopAll)
+   */
+  stop() {
+    this.stopAll();
   }
 }
 

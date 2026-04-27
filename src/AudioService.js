@@ -3,6 +3,9 @@
  * Plays pre-saved tracks based on detected emotions and context modes
  */
 
+// Set to true to enable AI music generation via the Flask API on maple.cs.trincoll.edu
+const AI_GENERATION_ENABLED = false;
+
 class AudioService {
   constructor() {
     this.currentAudio = null;
@@ -60,6 +63,10 @@ class AudioService {
 
     // Avoid immediate repeats
     this.lastPlayedTrack = {};
+
+    // AI generation
+    this.aiGenerationEnabled = AI_GENERATION_ENABLED;
+    this.aiAudio = null;
   }
 
   /**
@@ -195,6 +202,7 @@ class AudioService {
       console.log(`🎵 Switching to ${emotion} music`);
     }
     await this.crossfadeTo(emotion);
+    this.generateAIMusic(emotion);
   }
 
   /**
@@ -388,6 +396,80 @@ class AudioService {
   }
 
   /**
+   * Generate AI music in the background and crossfade to it when ready
+   */
+  async generateAIMusic(emotion) {
+    if (this.currentMode === 'dnd') {
+      console.log('🐉 DND mode - using curated medieval tracks, skipping AI generation');
+      return;
+    }
+
+    if (!this.aiGenerationEnabled) {
+      console.log('AI music generation is disabled');
+      return;
+    }
+
+    console.log(`🤖 Requesting AI-generated music for: ${emotion}`);
+
+    try {
+      const response = await fetch('http://maple.cs.trincoll.edu:5001/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emotion })
+      });
+
+      if (!response.ok) {
+        throw new Error(`AI generation failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.audio) {
+        throw new Error('No audio data in AI response');
+      }
+
+      // Convert base64 to blob URL
+      const byteCharacters = atob(data.audio);
+      const byteArray = new Uint8Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteArray[i] = byteCharacters.charCodeAt(i);
+      }
+      const blob = new Blob([byteArray], { type: 'audio/wav' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Clean up previous AI audio blob URL
+      if (this.aiAudio) {
+        URL.revokeObjectURL(this.aiAudio.src);
+      }
+
+      const aiTrack = new Audio(blobUrl);
+      aiTrack.volume = 0;
+      aiTrack.loop = true;
+      this.aiAudio = aiTrack;
+
+      console.log('🤖 AI music ready, crossfading...');
+
+      await aiTrack.play();
+
+      // Crossfade from current track to AI track
+      if (this.currentAudio) {
+        await this.crossfade(this.currentAudio, aiTrack);
+      } else {
+        await this.fadeIn(aiTrack);
+      }
+
+      this.currentAudio = aiTrack;
+      this.currentTrackName = `AI-generated (${emotion})`;
+      this.currentEmotion = emotion;
+      this.isPlaying = true;
+      this.notifyListeners();
+
+      console.log('🤖 Now playing AI-generated music');
+    } catch (error) {
+      console.error('AI music generation failed:', error);
+    }
+  }
+
+  /**
    * Stop and cleanup
    */
   stop() {
@@ -395,6 +477,11 @@ class AudioService {
       this.currentAudio.pause();
       this.currentAudio.src = '';
       this.currentAudio = null;
+    }
+    if (this.aiAudio && this.aiAudio !== this.currentAudio) {
+      this.aiAudio.pause();
+      URL.revokeObjectURL(this.aiAudio.src);
+      this.aiAudio = null;
     }
     this.isPlaying = false;
     this.playingIntro = false;

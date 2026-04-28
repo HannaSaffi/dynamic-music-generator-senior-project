@@ -130,10 +130,11 @@ function Register() {
                 placeholder="Choose a username"
                 style={{
                   width: '100%',
-                  padding: '16px 18px',
+                  height: '50px',
+                  padding: '16px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   color: 'white',
                   fontSize: '16px',
                   outline: 'none',
@@ -169,10 +170,11 @@ function Register() {
                 placeholder="you@example.com"
                 style={{
                   width: '100%',
-                  padding: '16px 18px',
+                  height: '50px',
+                  padding: '16px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   color: 'white',
                   fontSize: '16px',
                   outline: 'none',
@@ -209,10 +211,11 @@ function Register() {
                 placeholder="At least 6 characters"
                 style={{
                   width: '100%',
-                  padding: '16px 18px',
+                  height: '50px',
+                  padding: '16px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   color: 'white',
                   fontSize: '16px',
                   outline: 'none',
@@ -248,10 +251,11 @@ function Register() {
                 placeholder="••••••••"
                 style={{
                   width: '100%',
-                  padding: '16px 18px',
+                  height: '50px',
+                  padding: '16px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   color: 'white',
                   fontSize: '16px',
                   outline: 'none',

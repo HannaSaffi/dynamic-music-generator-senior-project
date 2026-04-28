@@ -111,10 +111,11 @@ function Login() {
                 placeholder="you@example.com"
                 style={{
                   width: '100%',
-                  padding: '16px 18px',
+                  height: '50px',
+                  padding: '16px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   color: 'white',
                   fontSize: '16px',
                   outline: 'none',
@@ -150,10 +151,11 @@ function Login() {
                 placeholder="••••••••"
                 style={{
                   width: '100%',
-                  padding: '16px 18px',
+                  height: '50px',
+                  padding: '16px',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   color: 'white',
                   fontSize: '16px',
                   outline: 'none',
@@ -199,8 +201,20 @@ function Login() {
                 e.target.style.boxShadow = '0 4px 16px rgba(168, 85, 247, 0.5)';
               }}
             >
-              {isLoading ? 'Logging in...' : 'Start Listening'}
+              {isLoading ? 'Connecting to server...' : 'Start Listening'}
             </button>
+
+            {isLoading && (
+              <div style={{
+                textAlign: 'center',
+                marginTop: '16px',
+                color: '#c4b5fd',
+                fontSize: '14px',
+                fontStyle: 'italic'
+              }}>
+                First login may take 1-2 minutes while server wakes up...
+              </div>
+            )}
 
             <div style={{ textAlign: 'center', marginTop: '24px' }}>
               <Link to="/forgot-password" style={{

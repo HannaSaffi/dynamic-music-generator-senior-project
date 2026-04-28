@@ -44,42 +44,45 @@ function Register() {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'linear-gradient(to bottom right, #5b21b6, #4c1d95, #1e3a8a)',
-      padding: '20px'
+      padding: '40px 20px'
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '450px',
+        maxWidth: '480px',
         animation: 'fadeIn 0.6s ease-out'
       }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: '96px',
+            height: '96px',
             background: 'linear-gradient(135deg, #a855f7, #ec4899)',
             borderRadius: '50%',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '20px',
-            animation: 'scaleIn 0.4s ease-out 0.2s backwards'
+            marginBottom: '24px',
+            animation: 'scaleIn 0.4s ease-out 0.2s backwards',
+            boxShadow: '0 8px 24px rgba(168, 85, 247, 0.4)'
           }}>
-            <span style={{ fontSize: '40px' }}>🎵</span>
+            <span style={{ fontSize: '48px' }}>🎵</span>
           </div>
           <h1 style={{
             color: 'white',
-            fontSize: '32px',
+            fontSize: '40px',
             fontWeight: '600',
-            margin: '0 0 10px 0'
+            margin: '0 0 12px 0',
+            letterSpacing: '-0.5px'
           }}>
             Create Account
           </h1>
           <p style={{
             color: '#c4b5fd',
-            fontSize: '16px',
-            margin: 0
+            fontSize: '18px',
+            margin: 0,
+            fontWeight: '400'
           }}>
-            Join the D&D Music Experience
+            Join the Sound Scape Experience
           </p>
         </div>
 
@@ -87,8 +90,8 @@ function Register() {
         <div style={{
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          padding: '40px',
+          borderRadius: '32px',
+          padding: '48px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
           animation: 'fadeIn 0.6s ease-out 0.3s backwards'
@@ -99,21 +102,21 @@ function Register() {
                 background: 'rgba(239, 68, 68, 0.2)',
                 border: '1px solid rgba(239, 68, 68, 0.5)',
                 color: '#fca5a5',
-                padding: '12px',
+                padding: '14px 16px',
                 borderRadius: '12px',
-                marginBottom: '24px',
+                marginBottom: '28px',
                 fontSize: '14px'
               }}>
                 {displayError}
               </div>
             )}
 
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '28px' }}>
               <label style={{
                 display: 'block',
                 color: '#e9d5ff',
-                marginBottom: '8px',
-                fontSize: '14px',
+                marginBottom: '10px',
+                fontSize: '15px',
                 fontWeight: '500'
               }}>
                 Username
@@ -127,23 +130,33 @@ function Register() {
                 placeholder="Choose a username"
                 style={{
                   width: '100%',
-                  padding: '14px 16px',
+                  padding: '16px 18px',
                   background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '12px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '14px',
                   color: 'white',
                   fontSize: '16px',
-                  outline: 'none'
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.target.style.border = '2px solid rgba(168, 85, 247, 0.8)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.border = '2px solid rgba(255, 255, 255, 0.3)';
                 }}
               />
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '28px' }}>
               <label style={{
                 display: 'block',
                 color: '#e9d5ff',
-                marginBottom: '8px',
-                fontSize: '14px',
+                marginBottom: '10px',
+                fontSize: '15px',
                 fontWeight: '500'
               }}>
                 Email
@@ -153,26 +166,36 @@ function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="your@email.com"
+                placeholder="you@example.com"
                 style={{
                   width: '100%',
-                  padding: '14px 16px',
+                  padding: '16px 18px',
                   background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '12px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '14px',
                   color: 'white',
                   fontSize: '16px',
-                  outline: 'none'
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.target.style.border = '2px solid rgba(168, 85, 247, 0.8)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.border = '2px solid rgba(255, 255, 255, 0.3)';
                 }}
               />
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '28px' }}>
               <label style={{
                 display: 'block',
                 color: '#e9d5ff',
-                marginBottom: '8px',
-                fontSize: '14px',
+                marginBottom: '10px',
+                fontSize: '15px',
                 fontWeight: '500'
               }}>
                 Password
@@ -186,23 +209,33 @@ function Register() {
                 placeholder="At least 6 characters"
                 style={{
                   width: '100%',
-                  padding: '14px 16px',
+                  padding: '16px 18px',
                   background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '12px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '14px',
                   color: 'white',
                   fontSize: '16px',
-                  outline: 'none'
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.target.style.border = '2px solid rgba(168, 85, 247, 0.8)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.border = '2px solid rgba(255, 255, 255, 0.3)';
                 }}
               />
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '32px' }}>
               <label style={{
                 display: 'block',
                 color: '#e9d5ff',
-                marginBottom: '8px',
-                fontSize: '14px',
+                marginBottom: '10px',
+                fontSize: '15px',
                 fontWeight: '500'
               }}>
                 Confirm Password
@@ -212,16 +245,26 @@ function Register() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                placeholder="Repeat your password"
+                placeholder="••••••••"
                 style={{
                   width: '100%',
-                  padding: '14px 16px',
+                  padding: '16px 18px',
                   background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '12px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '14px',
                   color: 'white',
                   fontSize: '16px',
-                  outline: 'none'
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.target.style.border = '2px solid rgba(168, 85, 247, 0.8)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.border = '2px solid rgba(255, 255, 255, 0.3)';
                 }}
               />
             </div>
@@ -231,16 +274,27 @@ function Register() {
               disabled={isLoading}
               style={{
                 width: '100%',
-                padding: '14px',
+                padding: '16px',
                 background: isLoading ? 'rgba(168, 85, 247, 0.5)' : 'linear-gradient(to right, #a855f7, #ec4899)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
+                borderRadius: '14px',
+                fontSize: '17px',
                 fontWeight: '600',
                 cursor: isLoading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s',
-                boxShadow: '0 4px 12px rgba(168, 85, 247, 0.4)'
+                boxShadow: '0 4px 16px rgba(168, 85, 247, 0.5)',
+                boxSizing: 'border-box'
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(168, 85, 247, 0.7)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 16px rgba(168, 85, 247, 0.5)';
               }}
             >
               {isLoading ? 'Creating account...' : 'Create Account'}
@@ -251,8 +305,9 @@ function Register() {
         {/* Sign in link */}
         <div style={{
           textAlign: 'center',
-          marginTop: '24px',
-          color: 'white'
+          marginTop: '32px',
+          color: 'white',
+          fontSize: '15px'
         }}>
           Already have an account?{' '}
           <Link to="/login" style={{
